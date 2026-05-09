@@ -1,0 +1,209 @@
+---
+title: "Rich Markdown v0.2 Showcase"
+author: "AI"
+date: "2026-05-10"
+---
+
+# Rich Markdown v0.2 终极组件展示
+
+本页面展示了 `.rmd` (Rich Markdown) 框架 v0.2 规范下所有核心扩展块及其增强能力的实时渲染与排版效果。这些组件均遵循“结构化输入，纯 CSS 优先渲染”的设计哲学。
+
+## 1. Timeline (时间轴)
+
+时间轴非常适合记录项目进度或历史事件，支持垂直与水平两种模式。
+
+### 垂直时间轴
+:::timeline
+@ 2026-01-01 [title="项目立项"] [status="success"]
+项目的初步规划完成，团队组建完毕。
+
+@ 2026-03-15 [title="v0.1 发布"] [status="success"]
+完成核心解析器的基础架构。
+
+@ 2026-05-10 [title="v0.2 扩展升级"] [status="pending"]
+新增高级互动组件、优化 CSS 瀑布流和交互，合规性测试全覆盖。
+
+@ 2026-12-01 [title="开源 1.0 正式版"] [status="default"]
+计划在此时间点开放完整源码库及周边生态。
+:::
+
+### 水平时间轴
+:::timeline direction="horizontal"
+@ 阶段一 [status="success"]
+需求分析与设计
+@ 阶段二 [status="warning"]
+高可用架构开发
+@ 阶段三 [status="danger"]
+遇到技术难点与回退
+@ 阶段四 [status="pending"]
+系统联调与发布
+:::
+
+---
+
+## 2. Kanban (看板)
+
+将信息以列状泳道聚合，适用于任务管理、多栏内容对比等信息流。
+
+:::kanban
+@ 待办事项 (To Do)
+- [ ] 编写组件使用说明文档
+- [ ] 增加更多第三方主题支持
+- [ ] 补充性能压测报告
+
+@ 进行中 (In Progress)
+- [x] 更新 Parser 的 AST 输出验证
+- [x] 重构主题引擎
+
+@ 已完成 (Done)
+* 合规性测试 100% 通过
+* CSS 层全面消除对 JS 的重度依赖
+* Carousel 纯 CSS 吸附轮播支持
+:::
+
+---
+
+## 3. Carousel (轮播交互)
+
+使用原生 CSS Scroll Snap 特性实现的丝滑手势交互分屏组件。
+
+:::carousel autoplay="true" interval="4000"
+### 特性一：全原生驱动
+没有复杂的 DOM 操作，只需手势或触控板轻轻一划。
+
+![Carousel Image 1](https://picsum.photos/800/300?random=1)
+---
+### 特性二：响应式适配
+不论是移动端还是桌面端，都能保证中心对齐和整屏滚动。
+
+![Carousel Image 2](https://picsum.photos/800/300?random=2)
+---
+### 特性三：优雅的玻璃拟物
+继承了默认主题精雕细琢的柔和边框与高级渐变投影体系。
+
+![Carousel Image 3](https://picsum.photos/800/300?random=3)
+:::
+
+---
+
+## 4. Details (智能折叠面板)
+
+原生 `<details>` 封装，自动携带过渡动画，非常适合存放长篇幅备注或次要内容。
+
+:::details title="点击查看完整的架构底层变更日志" open="true"
+1. **Parser 层**：为保证对 HTML 规范的尊重，采用了 Markdown-it 的原生 Tokenizer，对新增的块级标签执行自定义规则分发。
+2. **Validator 层**：扩展了超过 20 条新规则，保障图表多系列、双滑块极值、看板子节点等树形结构的严格类型安全。
+3. **Renderer 层**：全面抛弃 React/Vue 绑定，在核心包中纯拼接标准 HTML DOM，实现 `100% Client Agnostic` 的极速加载体验。
+:::
+
+---
+
+## 5. Embed & Math (媒体嵌入与公式)
+
+处理视频、地图或外部挂载应用，以及专业数学公式。
+
+### Bilibili / YouTube 嵌入
+:::embed type="video" id="https://www.youtube.com/embed/dQw4w9WgXcQ" aspect-ratio="16/9"
+:::
+
+### LaTeX 数学公式
+:::math
+\mathcal{L} = \sum_{i=1}^{N} \left( y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i) \right) + \frac{\lambda}{2} \|\mathbf{w}\|_2^2
+:::
+
+---
+
+## 6. Grid (网格与瀑布流)
+
+v0.2 引入了灵活的多列定义和瀑布流排版能力。
+
+### 瀑布流模式 (Masonry)
+:::grid 3 gap="sm" layout="masonry"
+:::callout info title="轻量级瀑布流"
+采用 CSS Column 分栏实现，从上到下填充，绝不断行。
+:::
+---
+:::callout tip title="无需 JS"
+相较于绝对定位的计算方案，Masonry 大幅节省了前端计算开销。
+:::
+---
+![Tall Image](https://picsum.photos/300/500?random=4)
+---
+:::callout warning title="浏览器兼容"
+现代浏览器对 `column-count` 的支持已经十分完美。
+:::
+---
+![Short Image](https://picsum.photos/300/200?random=5)
+:::
+
+---
+
+## 7. 增强图表 (Charts v0.2)
+
+现已支持多种扩展图表及复杂的双 Y 轴与工具提示配置。
+
+### 堆叠面积图 (带图例与副轴)
+:::chart area title="年度收入与活跃用户走势" y2="活跃用户(万)" legend="top" tooltip="true" emphasis="primary"
+Q1_2025 120 40
+Q2_2025 150 45
+Q3_2025 180 60
+Q4_2025 240 85
+Q1_2026 310 110
+:::
+
+### 散点分布图 (Scatter)
+:::chart scatter title="性能与能耗分布模型"
+Model_A 12 300
+Model_B 15 450
+Model_C 8 150
+Model_D 22 800
+Model_E 18 600
+:::
+
+---
+
+## 8. 增强滑块 (Slider v0.2)
+
+支持双滑块、刻度盘 (`marks`) 与对数比例 (`scale="log"`)。
+
+:::slider name="volume_range" label="动态请求限制 (区间)" min="10" max="1000" step="10" default="100,500" unit="QPS" scale="log" marks="10,100,500,1000"
+:::
+
+---
+
+## 9. 经典互动块复习 (Callout, Tabs, Diff, Flow)
+
+:::tabs default="Vue"
+@ React
+```jsx
+export function Hello() {
+  return <div className="rmd">Hello</div>;
+}
+```
+@ Vue
+```vue
+<template>
+  <div class="rmd">Hello</div>
+</template>
+```
+:::
+
+:::flow direction="lr"
+Parser -> Validator -> Renderer
+Renderer -> HTML
+HTML -> Browser
+:::
+
+:::diff title="v0.1 to v0.2 升级差异"
+- import { parseOld } from "parser"; @注: 已弃用
++ import { parseCoreBlock } from "blocks-core";
++ import { renderTimeline, renderKanban } from "renderer-core";
+:::
+
+:::export label="复制代码片段" format="json"
+{
+  "project": "Rich Markdown",
+  "version": "v0.2",
+  "status": "Ready for Production"
+}
+:::

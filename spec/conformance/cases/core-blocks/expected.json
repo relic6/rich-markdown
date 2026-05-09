@@ -1,0 +1,212 @@
+{
+  "type": "root",
+  "version": "0.1.0",
+  "frontmatter": {
+    "title": "Core Blocks",
+    "theme": "default"
+  },
+  "warnings": [],
+  "children": [
+    {
+      "type": "heading",
+      "level": 1,
+      "children": [
+        {
+          "type": "text",
+          "value": "Core Blocks"
+        }
+      ]
+    },
+    {
+      "type": "chart",
+      "chartType": "bar",
+      "title": "Latency",
+      "x": null,
+      "y": null,
+      "y2": null,
+      "legend": "bottom",
+      "tooltip": true,
+      "emphasis": "none",
+      "data": [
+        {
+          "label": "A",
+          "values": [
+            10
+          ]
+        },
+        {
+          "label": "B",
+          "values": [
+            20
+          ]
+        }
+      ],
+      "raw": "A 10\nB 20"
+    },
+    {
+      "type": "grid",
+      "columns": 2,
+      "gap": "md",
+      "layout": "default",
+      "cells": [
+        [
+          {
+            "type": "heading",
+            "level": 3,
+            "children": [
+              {
+                "type": "text",
+                "value": "Left"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "value": "One"
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "type": "heading",
+            "level": 3,
+            "children": [
+              {
+                "type": "text",
+                "value": "Right"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "value": "Two"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "type": "callout",
+      "kind": "warning",
+      "title": "Careful",
+      "children": [
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Watch this."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "slider",
+      "name": "capacity",
+      "min": 10,
+      "max": 100,
+      "step": 10,
+      "default": 20,
+      "unit": "req",
+      "label": "Capacity",
+      "scale": "linear",
+      "marks": null
+    },
+    {
+      "type": "export",
+      "label": "Copy",
+      "format": "text",
+      "template": "capacity={{capacity | int}}",
+      "references": [
+        "capacity"
+      ]
+    },
+    {
+      "type": "flow",
+      "direction": "tb",
+      "nodes": [
+        {
+          "id": "A"
+        },
+        {
+          "id": "B"
+        },
+        {
+          "id": "C"
+        }
+      ],
+      "edges": [
+        {
+          "from": "A",
+          "to": "B"
+        },
+        {
+          "from": "B",
+          "to": "C"
+        }
+      ]
+    },
+    {
+      "type": "diff",
+      "lang": "js",
+      "title": "Change",
+      "lines": [
+        {
+          "kind": "remove",
+          "text": "old()",
+          "note": null
+        },
+        {
+          "kind": "add",
+          "text": "new()",
+          "note": "safer"
+        },
+        {
+          "kind": "context",
+          "text": "same()",
+          "note": null
+        }
+      ]
+    },
+    {
+      "type": "tabs",
+      "default": "Code",
+      "panels": [
+        {
+          "label": "Concept",
+          "children": [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Use it."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Code",
+          "children": [
+            {
+              "type": "code-block",
+              "lang": "js",
+              "value": "console.log(\"ok\")",
+              "raw": "```js\nconsole.log(\"ok\")\n```"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

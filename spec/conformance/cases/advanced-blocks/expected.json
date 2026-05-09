@@ -1,0 +1,162 @@
+{
+  "type": "root",
+  "version": "0.1.0",
+  "frontmatter": {},
+  "warnings": [],
+  "children": [
+    {
+      "type": "timeline",
+      "direction": "vertical",
+      "items": [
+        {
+          "time": "2026-01-01",
+          "title": "Start",
+          "status": "success",
+          "children": [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Done."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "time": "2026-12-01",
+          "title": null,
+          "status": "default",
+          "children": [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "type": "text",
+                  "value": "Pending."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "kanban",
+      "columns": [
+        {
+          "title": "Todo",
+          "children": [
+            {
+              "type": "list",
+              "ordered": false,
+              "start": null,
+              "tight": false,
+              "children": [
+                {
+                  "type": "list-item",
+                  "checked": null,
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Task 1"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Done",
+          "children": [
+            {
+              "type": "list",
+              "ordered": false,
+              "start": null,
+              "tight": false,
+              "children": [
+                {
+                  "type": "list-item",
+                  "checked": null,
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "Task 2"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "details",
+      "title": "More info",
+      "open": true,
+      "children": [
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "value": "Hidden text."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "carousel",
+      "autoplay": true,
+      "interval": 3000,
+      "items": [
+        [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "value": "1"
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "value": "2"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "type": "embed",
+      "embedType": "youtube",
+      "embedId": "123",
+      "aspectRatio": null
+    },
+    {
+      "type": "math",
+      "value": "E = mc^2"
+    }
+  ]
+}

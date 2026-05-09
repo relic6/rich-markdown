@@ -1,0 +1,54 @@
+{
+  "type": "root",
+  "version": "0.1.0",
+  "frontmatter": {},
+  "warnings": [],
+  "children": [
+    {
+      "type": "heading",
+      "level": 1,
+      "children": [
+        {
+          "type": "text",
+          "value": "Fallbacks"
+        }
+      ]
+    },
+    {
+      "type": "code-block",
+      "lang": "rmd",
+      "value": ":::unknown custom=1\nhello\n:::",
+      "warnings": [
+        "unknown-block: unknown"
+      ],
+      "raw": ":::unknown custom=1\nhello\n:::"
+    },
+    {
+      "type": "code-block",
+      "lang": "rmd",
+      "value": ":::chart nope\nA 1\n:::",
+      "warnings": [
+        "chart-invalid-type: nope"
+      ],
+      "raw": ":::chart nope\nA 1\n:::"
+    },
+    {
+      "type": "code-block",
+      "lang": "rmd",
+      "value": ":::slider name=bad-name min=0 max=10\n:::",
+      "warnings": [
+        "slider-invalid-name: bad-name"
+      ],
+      "raw": ":::slider name=bad-name min=0 max=10\n:::"
+    },
+    {
+      "type": "code-block",
+      "lang": "rmd",
+      "value": ":::flow\nlonely\n:::",
+      "warnings": [
+        "flow-empty-edges"
+      ],
+      "raw": ":::flow\nlonely\n:::"
+    }
+  ]
+}

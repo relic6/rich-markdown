@@ -1,0 +1,49 @@
+---
+title: Core Blocks
+theme: default
+---
+
+# Core Blocks
+
+:::chart bar title="Latency"
+A 10
+B 20
+:::
+
+:::grid 2
+### Left
+One
+---
+### Right
+Two
+:::
+
+:::callout warning title="Careful"
+Watch this.
+:::
+
+:::slider name=capacity min=10 max=100 step=10 default=20 unit=req label=Capacity
+:::
+
+:::export label="Copy"
+capacity={{capacity | int}}
+:::
+
+:::flow direction=tb
+A -> B -> C
+:::
+
+:::diff lang=js title="Change"
+- old()
++ new() @注: safer
+  same()
+:::
+
+:::tabs default=Code
+@Concept
+Use it.
+@Code
+```js
+console.log("ok")
+```
+:::

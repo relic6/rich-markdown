@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./rmd.min.js"></script>
+<link rel="stylesheet" href="./themes/default.css">
+</head>
+<body>
+<div id="rmd-root"></div>
+<script type="application/rmd">---
+title: Codex Rich Markdown Demo
+theme: default
+share: private
+---
+
+# Codex Rich Markdown Demo
+
+This document tests whether Codex can generate a compact `.rmd` source file and
+turn it into an interactive HTML artifact.
+
+## Rendering Path
+
+:::flow direction=lr
+Prompt -> RMD source -> Validate -> Build HTML -> View
+:::
+
+## Output Comparison
+
+:::grid 3
+### Markdown
+Small and diffable, but static.
+---
+### HTML
+Rich and portable, but verbose.
+---
+### Rich Markdown
+Small source with rich renderer output.
+:::
+
+## Estimated Token Cost
+
+:::chart bar title="Relative output tokens"
+Markdown 100
+RichMarkdown 140
+HTML 520
+:::
+
+## Try a Parameter
+
+:::slider name=detail_level min=1 max=5 step=1 default=3 label=Detail
+:::
+
+:::export label="Copy prompt"
+Write a Rich Markdown report with detail_level={{detail_level | int}}.
+:::
+
+:::callout success title="Expected result"
+Codex should produce `.rmd` source first, validate it, and build a self-contained
+HTML file for viewing inside the desktop app or browser.
+:::
+</script>
+<script>RMD.render({source:document.querySelector('script[type="application/rmd"]').textContent,target:document.getElementById('rmd-root'),theme:"default"});</script>
+</body>
+</html>

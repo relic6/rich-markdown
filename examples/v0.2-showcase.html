@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rich Markdown v0.2 Showcase</title>
+  <style>
+:root {
+  --rmd-color-page: #f5f7f4;
+  --rmd-color-bg: #fbfcf8;
+  --rmd-color-surface: #ffffff;
+  --rmd-color-surface-strong: #f0f4ef;
+  --rmd-color-fg: #20251f;
+  --rmd-color-muted: #687064;
+  --rmd-color-subtle: #8b9387;
+  --rmd-color-line: #d7ddd2;
+  --rmd-color-line-strong: #b7c1b0;
+  --rmd-color-primary: #176b72;
+  --rmd-color-primary-strong: #0e4d55;
+  --rmd-color-accent: #c8523e;
+  --rmd-color-success: #2f7d4f;
+  --rmd-color-warning: #a36a1c;
+  --rmd-color-danger: #b63f35;
+  --rmd-color-info: #3867a8;
+  --rmd-font-body: Charter, "Iowan Old Style", "Palatino Linotype", Palatino, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", serif;
+  --rmd-font-ui: "Avenir Next", Avenir, "Gill Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --rmd-font-mono: "SF Mono", "Cascadia Code", "Liberation Mono", Menlo, Consolas, monospace;
+  --rmd-radius-sm: 4px;
+  --rmd-radius-md: 8px;
+  --rmd-radius-lg: 8px;
+  --rmd-spacing-sm: 8px;
+  --rmd-spacing-md: 16px;
+  --rmd-spacing-lg: 28px;
+  --rmd-shadow-sm: 0 1px 2px rgb(23 36 29 / 0.05), 0 8px 22px rgb(23 36 29 / 0.05);
+  --rmd-shadow-md: 0 16px 38px rgb(23 36 29 / 0.09);
+  --rmd-focus-ring: 0 0 0 3px rgb(23 107 114 / 0.2);
+}
+
+body[data-rmd-theme] {
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgb(245 247 244 / 0.92), rgb(238 243 241 / 0.92)),
+    radial-gradient(circle at 18% 12%, rgb(200 82 62 / 0.12), transparent 28rem),
+    radial-gradient(circle at 82% 4%, rgb(23 107 114 / 0.14), transparent 34rem);
+  color: var(--rmd-color-fg);
+}
+
+.rmd-document {
+  box-sizing: border-box;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 72px) clamp(18px, 5vw, 56px);
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-body);
+  font-size: 17px;
+  line-height: 1.72;
+  letter-spacing: 0;
+}
+
+.rmd-document *,
+.rmd-document *::before,
+.rmd-document *::after {
+  box-sizing: border-box;
+}
+
+.rmd-document > :first-child {
+  margin-top: 0;
+}
+
+.rmd-document > :last-child {
+  margin-bottom: 0;
+}
+
+.rmd-document h1,
+.rmd-document h2,
+.rmd-document h3,
+.rmd-document h4,
+.rmd-document h5,
+.rmd-document h6 {
+  margin: 2.2em 0 0.65em;
+  color: #18201a;
+  font-family: var(--rmd-font-ui);
+  font-weight: 720;
+  letter-spacing: 0;
+  line-height: 1.12;
+}
+
+.rmd-document h1 {
+  max-width: 840px;
+  margin-bottom: 0.85em;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--rmd-color-line);
+  font-size: 42px;
+}
+
+.rmd-document h2 {
+  font-size: 28px;
+}
+
+.rmd-document h3 {
+  font-size: 20px;
+}
+
+.rmd-document p,
+.rmd-document ul,
+.rmd-document ol,
+.rmd-document blockquote {
+  margin: 0 0 1.05em;
+}
+
+.rmd-document a {
+  color: var(--rmd-color-primary-strong);
+  text-decoration-color: rgb(23 107 114 / 0.28);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.rmd-document a:hover {
+  color: var(--rmd-color-accent);
+  text-decoration-color: rgb(200 82 62 / 0.42);
+}
+
+.rmd-document strong {
+  color: #111a14;
+  font-weight: 720;
+}
+
+.rmd-document code {
+  border: 1px solid rgb(23 107 114 / 0.14);
+  border-radius: var(--rmd-radius-sm);
+  padding: 0.08em 0.32em;
+  background: rgb(23 107 114 / 0.07);
+  color: #0f4f57;
+  font-family: var(--rmd-font-mono);
+  font-size: 0.88em;
+}
+
+.rmd-document img {
+  max-width: 100%;
+  border-radius: var(--rmd-radius-md);
+}
+
+.rmd-document blockquote {
+  margin: 1.45em 0;
+  border-left: 4px solid var(--rmd-color-primary);
+  padding: 4px 0 4px 18px;
+  color: #3f493d;
+  font-size: 18px;
+}
+
+.rmd-document blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.rmd-document hr {
+  margin: 38px 0;
+  border: 0;
+  border-top: 1px solid var(--rmd-color-line);
+}
+
+.rmd-block {
+  margin: 32px 0;
+}
+
+.rmd-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--rmd-grid-columns, 1), minmax(0, 1fr));
+  gap: 14px;
+}
+
+.rmd-grid[data-columns="2"] { --rmd-grid-columns: 2; }
+.rmd-grid[data-columns="3"] { --rmd-grid-columns: 3; }
+.rmd-grid[data-columns="4"] { --rmd-grid-columns: 4; }
+.rmd-grid[data-columns="5"] { --rmd-grid-columns: 5; }
+.rmd-grid[data-columns="6"] { --rmd-grid-columns: 6; }
+
+.rmd-grid-cell,
+.rmd-callout,
+.rmd-export,
+.rmd-slider,
+.rmd-diff,
+.rmd-flow,
+.rmd-tabs {
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  background: rgb(255 255 255 / 0.86);
+  box-shadow: var(--rmd-shadow-sm);
+}
+
+.rmd-grid-cell {
+  min-width: 0;
+  padding: 18px;
+  border-top: 3px solid rgb(23 107 114 / 0.46);
+}
+
+.rmd-grid-cell > :first-child {
+  margin-top: 0;
+}
+
+.rmd-grid-cell > :last-child {
+  margin-bottom: 0;
+}
+
+.rmd-callout,
+.rmd-export,
+.rmd-diff,
+.rmd-flow,
+.rmd-tabs {
+  padding: 20px;
+}
+
+.rmd-callout {
+  position: relative;
+  overflow: hidden;
+  border-left-width: 5px;
+}
+
+.rmd-callout::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: currentColor;
+  content: "";
+}
+
+.rmd-callout-tip,
+.rmd-callout-success {
+  border-color: rgb(47 125 79 / 0.28);
+  color: var(--rmd-color-success);
+}
+
+.rmd-callout-warning {
+  border-color: rgb(163 106 28 / 0.3);
+  color: var(--rmd-color-warning);
+}
+
+.rmd-callout-danger {
+  border-color: rgb(182 63 53 / 0.3);
+  color: var(--rmd-color-danger);
+}
+
+.rmd-callout-info {
+  border-color: rgb(56 103 168 / 0.28);
+  color: var(--rmd-color-info);
+}
+
+.rmd-callout-title,
+.rmd-block-title {
+  margin: 0 0 12px;
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-ui);
+  font-size: 15px;
+  font-weight: 720;
+}
+
+.rmd-callout-body {
+  color: var(--rmd-color-fg);
+}
+
+.rmd-callout-body > :last-child {
+  margin-bottom: 0;
+}
+
+.rmd-chart {
+  padding: 20px;
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.94), rgb(246 249 244 / 0.92));
+  box-shadow: var(--rmd-shadow-md);
+}
+
+.rmd-chart-svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 220px;
+  padding-top: 6px;
+}
+
+.rmd-chart rect {
+  fill: var(--rmd-color-primary);
+  filter: drop-shadow(0 8px 8px rgb(23 107 114 / 0.16));
+  transition: fill 160ms ease, transform 160ms ease;
+  transform-origin: bottom;
+}
+
+.rmd-chart-point:nth-of-type(2n) rect {
+  fill: var(--rmd-color-accent);
+}
+
+.rmd-chart-point:hover rect {
+  fill: var(--rmd-color-primary-strong);
+  transform: scaleY(1.03);
+}
+
+.rmd-chart text {
+  fill: var(--rmd-color-muted);
+  font-family: var(--rmd-font-ui);
+  font-size: 12px;
+}
+
+.rmd-slider {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.1fr) minmax(180px, 3fr) minmax(58px, auto);
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+}
+
+.rmd-slider label,
+.rmd-slider output {
+  font-family: var(--rmd-font-ui);
+  font-size: 14px;
+  font-weight: 680;
+}
+
+.rmd-slider label {
+  color: #293128;
+}
+
+.rmd-slider output {
+  justify-self: end;
+  min-width: 54px;
+  border: 1px solid rgb(23 107 114 / 0.18);
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: rgb(23 107 114 / 0.08);
+  color: var(--rmd-color-primary-strong);
+  text-align: center;
+}
+
+.rmd-slider input[type="range"] {
+  width: 100%;
+  accent-color: var(--rmd-color-primary);
+  cursor: pointer;
+}
+
+.rmd-slider input[type="range"]:focus-visible,
+.rmd-export button:focus-visible,
+.rmd-tabs [role="tab"]:focus-visible {
+  outline: 0;
+  box-shadow: var(--rmd-focus-ring);
+}
+
+.rmd-export button,
+.rmd-tabs [role="tab"] {
+  border: 1px solid var(--rmd-color-line-strong);
+  border-radius: var(--rmd-radius-sm);
+  padding: 8px 12px;
+  background: var(--rmd-color-surface);
+  color: #243026;
+  font-family: var(--rmd-font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.rmd-export button:hover,
+.rmd-tabs [role="tab"]:hover {
+  border-color: var(--rmd-color-primary);
+  color: var(--rmd-color-primary-strong);
+  transform: translateY(-1px);
+}
+
+.rmd-export button {
+  background: var(--rmd-color-primary);
+  border-color: var(--rmd-color-primary);
+  color: #fff;
+}
+
+.rmd-export button:hover {
+  background: var(--rmd-color-primary-strong);
+  color: #fff;
+}
+
+.rmd-tabs [role="tablist"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.rmd-tabs [role="tab"][aria-selected="true"] {
+  border-color: var(--rmd-color-primary);
+  background: rgb(23 107 114 / 0.1);
+  color: var(--rmd-color-primary-strong);
+}
+
+.rmd-tabs [role="tabpanel"] > :last-child {
+  margin-bottom: 0;
+}
+
+.rmd-code,
+.rmd-export pre,
+.rmd-diff pre {
+  overflow: auto;
+  border: 1px solid rgb(32 37 31 / 0.1);
+  border-radius: var(--rmd-radius-md);
+  background: #15201b;
+  color: #e8eee7;
+  font-family: var(--rmd-font-mono);
+  font-size: 13px;
+  line-height: 1.62;
+}
+
+.rmd-code {
+  padding: 16px;
+}
+
+.rmd-code code,
+.rmd-export pre code,
+.rmd-diff code {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+}
+
+.rmd-export pre,
+.rmd-diff pre {
+  margin: 14px 0 0;
+  padding: 14px;
+}
+
+.rmd-flow ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rmd-flow li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgb(23 107 114 / 0.14);
+  border-radius: var(--rmd-radius-md);
+  padding: 10px 12px;
+  background: rgb(23 107 114 / 0.055);
+  color: #263229;
+  font-family: var(--rmd-font-ui);
+  font-size: 14px;
+}
+
+.rmd-flow li span:nth-child(2) {
+  color: var(--rmd-color-accent);
+  font-weight: 800;
+}
+
+.rmd-diff-line {
+  display: block;
+  padding: 2px 0;
+}
+
+.rmd-diff-line mark {
+  border-radius: 999px;
+  padding: 2px 7px;
+  background: rgb(200 82 62 / 0.18);
+  color: #f0c2b9;
+  font-family: var(--rmd-font-ui);
+  font-size: 12px;
+}
+
+.rmd-diff-add code {
+  color: #9fe0b5;
+}
+
+.rmd-diff-remove code {
+  color: #f1a29a;
+}
+
+@media (max-width: 720px) {
+  .rmd-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rmd-slider {
+    grid-template-columns: 1fr;
+  }
+
+  .rmd-slider output {
+    justify-self: start;
+  }
+
+  .rmd-document h1 {
+    font-size: 32px;
+  }
+
+  .rmd-document h2 {
+    font-size: 24px;
+  }
+}
+
+/* ========================================================================= */
+/* EXTENSION BLOCKS v0.2                                                     */
+/* ========================================================================= */
+
+/* Grid Masonry Layout */
+.rmd-grid[data-layout="masonry"] {
+  display: block;
+  column-gap: 14px;
+  column-count: var(--rmd-grid-columns, 1);
+}
+
+.rmd-grid[data-layout="masonry"] > .rmd-grid-cell {
+  break-inside: avoid;
+  margin-bottom: 14px;
+}
+
+/* Timeline */
+.rmd-timeline {
+  margin: 32px 0;
+}
+
+.rmd-timeline ol {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rmd-timeline-vertical ol::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 5px;
+  width: 2px;
+  background: var(--rmd-color-line);
+  content: "";
+}
+
+.rmd-timeline-vertical .rmd-timeline-item {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 24px;
+}
+
+.rmd-timeline-vertical .rmd-timeline-item::before {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--rmd-color-surface);
+  border: 2px solid var(--rmd-color-line-strong);
+  content: "";
+  z-index: 1;
+}
+
+.rmd-timeline-horizontal ol {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding-bottom: 10px;
+}
+
+.rmd-timeline-horizontal .rmd-timeline-item {
+  flex: 0 0 auto;
+  min-width: 200px;
+  position: relative;
+  padding-top: 28px;
+}
+
+.rmd-timeline-horizontal ol::before {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--rmd-color-line);
+  content: "";
+}
+
+.rmd-timeline-horizontal .rmd-timeline-item::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--rmd-color-surface);
+  border: 2px solid var(--rmd-color-line-strong);
+  content: "";
+  z-index: 1;
+}
+
+.rmd-timeline-time {
+  font-family: var(--rmd-font-mono);
+  font-size: 13px;
+  color: var(--rmd-color-subtle);
+  margin-bottom: 4px;
+}
+
+.rmd-timeline-content h4 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--rmd-color-fg);
+}
+
+.rmd-timeline-status-success::before { border-color: var(--rmd-color-success) !important; background: var(--rmd-color-success) !important; }
+.rmd-timeline-status-warning::before { border-color: var(--rmd-color-warning) !important; background: var(--rmd-color-warning) !important; }
+.rmd-timeline-status-danger::before { border-color: var(--rmd-color-danger) !important; background: var(--rmd-color-danger) !important; }
+.rmd-timeline-status-pending::before { border-color: var(--rmd-color-primary) !important; }
+
+/* Kanban */
+.rmd-kanban {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+  align-items: flex-start;
+  scroll-snap-type: x mandatory;
+}
+
+.rmd-kanban-column {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
+  background: rgb(243 246 242 / 0.85);
+  border-radius: var(--rmd-radius-md);
+  padding: 16px;
+  border: 1px solid var(--rmd-color-line);
+}
+
+.rmd-kanban-column h3 {
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 720;
+  color: var(--rmd-color-fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rmd-kanban-column h3::before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rmd-color-primary);
+  box-shadow: 0 0 0 3px rgb(23 107 114 / 0.15);
+}
+
+.rmd-kanban-column:nth-child(2n) h3::before { background: var(--rmd-color-warning); box-shadow: 0 0 0 3px rgb(163 106 28 / 0.15); }
+.rmd-kanban-column:nth-child(3n) h3::before { background: var(--rmd-color-success); box-shadow: 0 0 0 3px rgb(47 125 79 / 0.15); }
+.rmd-kanban-column:nth-child(4n) h3::before { background: var(--rmd-color-accent); box-shadow: 0 0 0 3px rgb(200 82 62 / 0.15); }
+
+.rmd-kanban-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rmd-kanban-cards ul,
+.rmd-kanban-cards ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rmd-kanban-cards > :not(ul):not(ol),
+.rmd-kanban-cards li {
+  background: var(--rmd-color-surface);
+  border-radius: var(--rmd-radius-sm);
+  padding: 14px;
+  margin: 0;
+  box-shadow: 0 2px 5px rgb(23 36 29 / 0.04);
+  border: 1px solid var(--rmd-color-line);
+  font-size: 15px;
+  line-height: 1.5;
+  color: #384236;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+  cursor: default;
+}
+
+.rmd-kanban-cards > :not(ul):not(ol):hover,
+.rmd-kanban-cards li:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--rmd-shadow-sm);
+  border-color: var(--rmd-color-line-strong);
+}
+
+.rmd-kanban-cards li input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: var(--rmd-color-primary);
+}
+
+/* Details */
+.rmd-details {
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  background: rgb(255 255 255 / 0.6);
+  overflow: hidden;
+  transition: background 200ms ease;
+}
+
+.rmd-details[open] {
+  background: var(--rmd-color-surface);
+  box-shadow: var(--rmd-shadow-sm);
+}
+
+.rmd-details summary {
+  padding: 16px 20px;
+  font-family: var(--rmd-font-ui);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rmd-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.rmd-details summary::before {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 6px solid var(--rmd-color-muted);
+  transition: transform 200ms ease;
+}
+
+.rmd-details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.rmd-details-body {
+  padding: 0 20px 20px;
+  border-top: 1px solid transparent;
+}
+
+.rmd-details[open] .rmd-details-body {
+  border-top-color: rgb(23 107 114 / 0.08);
+  padding-top: 16px;
+}
+
+/* Carousel */
+.rmd-carousel {
+  position: relative;
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  overflow: hidden;
+  box-shadow: var(--rmd-shadow-sm);
+  background: var(--rmd-color-surface);
+}
+
+.rmd-carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.rmd-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.rmd-carousel-item {
+  scroll-snap-align: center;
+  flex: 0 0 100%;
+  width: 100%;
+  padding: 24px;
+}
+
+/* Embed */
+.rmd-embed {
+  position: relative;
+  width: 100%;
+  border-radius: var(--rmd-radius-md);
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--rmd-shadow-md);
+}
+
+.rmd-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  aspect-ratio: var(--rmd-aspect-ratio, 16 / 9);
+}
+
+/* Math */
+.rmd-math {
+  display: block;
+  overflow-x: auto;
+  padding: 18px 24px;
+  background: rgb(23 107 114 / 0.04);
+  border-radius: var(--rmd-radius-md);
+  border: 1px solid rgb(23 107 114 / 0.12);
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-mono);
+  font-size: 15px;
+  text-align: center;
+}
+
+.rmd-math pre {
+  margin: 0;
+}
+  </style>
+</head>
+<body data-rmd-theme="default">
+<main class="rmd-document" data-rmd-version="0.1.0">
+<h1>Rich Markdown v0.2 终极组件展示</h1>
+<p>本页面展示了 <code>.rmd</code> (Rich Markdown) 框架 v0.2 规范下所有核心扩展块及其增强能力的实时渲染与排版效果。这些组件均遵循“结构化输入，纯 CSS 优先渲染”的设计哲学。</p>
+<h2>1. Timeline (时间轴)</h2>
+<p>时间轴非常适合记录项目进度或历史事件，支持垂直与水平两种模式。</p>
+<h3>垂直时间轴</h3>
+<section class="rmd-block rmd-timeline rmd-timeline-vertical" data-rmd-block="timeline" data-direction="vertical"><ol><li class="rmd-timeline-item rmd-timeline-status-success"><div class="rmd-timeline-time">2026-01-01</div><div class="rmd-timeline-content"><h4>项目立项</h4><p>项目的初步规划完成，团队组建完毕。</p></div></li><li class="rmd-timeline-item rmd-timeline-status-success"><div class="rmd-timeline-time">2026-03-15</div><div class="rmd-timeline-content"><h4>v0.1 发布</h4><p>完成核心解析器的基础架构。</p></div></li><li class="rmd-timeline-item rmd-timeline-status-pending"><div class="rmd-timeline-time">2026-05-10</div><div class="rmd-timeline-content"><h4>v0.2 扩展升级</h4><p>新增高级互动组件、优化 CSS 瀑布流和交互，合规性测试全覆盖。</p></div></li><li class="rmd-timeline-item"><div class="rmd-timeline-time">2026-12-01</div><div class="rmd-timeline-content"><h4>开源 1.0 正式版</h4><p>计划在此时间点开放完整源码库及周边生态。</p></div></li></ol></section>
+<h3>水平时间轴</h3>
+<section class="rmd-block rmd-timeline rmd-timeline-horizontal" data-rmd-block="timeline" data-direction="horizontal"><ol><li class="rmd-timeline-item rmd-timeline-status-success"><div class="rmd-timeline-time">阶段一</div><div class="rmd-timeline-content"><p>需求分析与设计</p></div></li><li class="rmd-timeline-item rmd-timeline-status-warning"><div class="rmd-timeline-time">阶段二</div><div class="rmd-timeline-content"><p>高可用架构开发</p></div></li><li class="rmd-timeline-item rmd-timeline-status-danger"><div class="rmd-timeline-time">阶段三</div><div class="rmd-timeline-content"><p>遇到技术难点与回退</p></div></li><li class="rmd-timeline-item rmd-timeline-status-pending"><div class="rmd-timeline-time">阶段四</div><div class="rmd-timeline-content"><p>系统联调与发布</p></div></li></ol></section>
+<hr>
+<h2>2. Kanban (看板)</h2>
+<p>将信息以列状泳道聚合，适用于任务管理、多栏内容对比等信息流。</p>
+<section class="rmd-block rmd-kanban" data-rmd-block="kanban"><div class="rmd-kanban-column"><h3>待办事项 (To Do)</h3><div class="rmd-kanban-cards"><ul><li><p>[ ] 编写组件使用说明文档</p></li><li><p>[ ] 增加更多第三方主题支持</p></li><li><p>[ ] 补充性能压测报告</p></li></ul></div></div><div class="rmd-kanban-column"><h3>进行中 (In Progress)</h3><div class="rmd-kanban-cards"><ul><li><p>[x] 更新 Parser 的 AST 输出验证</p></li><li><p>[x] 重构主题引擎</p></li></ul></div></div><div class="rmd-kanban-column"><h3>已完成 (Done)</h3><div class="rmd-kanban-cards"><ul><li><p>合规性测试 100% 通过</p></li><li><p>CSS 层全面消除对 JS 的重度依赖</p></li><li><p>Carousel 纯 CSS 吸附轮播支持</p></li></ul></div></div></section>
+<hr>
+<h2>3. Carousel (轮播交互)</h2>
+<p>使用原生 CSS Scroll Snap 特性实现的丝滑手势交互分屏组件。</p>
+<section class="rmd-block rmd-carousel" data-rmd-block="carousel" data-autoplay="true" data-interval="4000"><div class="rmd-carousel-track"><div class="rmd-carousel-item" role="group" aria-roledescription="slide" aria-label="1 of 3"><h3>特性一：全原生驱动</h3>
+<p>没有复杂的 DOM 操作，只需手势或触控板轻轻一划。</p>
+<p><img src="https://picsum.photos/800/300?random=1" alt="Carousel Image 1"></p></div><div class="rmd-carousel-item" role="group" aria-roledescription="slide" aria-label="2 of 3"><h3>特性二：响应式适配</h3>
+<p>不论是移动端还是桌面端，都能保证中心对齐和整屏滚动。</p>
+<p><img src="https://picsum.photos/800/300?random=2" alt="Carousel Image 2"></p></div><div class="rmd-carousel-item" role="group" aria-roledescription="slide" aria-label="3 of 3"><h3>特性三：优雅的玻璃拟物</h3>
+<p>继承了默认主题精雕细琢的柔和边框与高级渐变投影体系。</p>
+<p><img src="https://picsum.photos/800/300?random=3" alt="Carousel Image 3"></p></div></div></section>
+<hr>
+<h2>4. Details (智能折叠面板)</h2>
+<p>原生 <code>&lt;details&gt;</code> 封装，自动携带过渡动画，非常适合存放长篇幅备注或次要内容。</p>
+<details class="rmd-block rmd-details" data-rmd-block="details" open><summary>点击查看完整的架构底层变更日志</summary><div class="rmd-details-body"><ol><li><p><strong>Parser 层</strong>：为保证对 HTML 规范的尊重，采用了 Markdown-it 的原生 Tokenizer，对新增的块级标签执行自定义规则分发。</p></li><li><p><strong>Validator 层</strong>：扩展了超过 20 条新规则，保障图表多系列、双滑块极值、看板子节点等树形结构的严格类型安全。</p></li><li><p><strong>Renderer 层</strong>：全面抛弃 React/Vue 绑定，在核心包中纯拼接标准 HTML DOM，实现 <code>100% Client Agnostic</code> 的极速加载体验。</p></li></ol></div></details>
+<hr>
+<h2>5. Embed &amp; Math (媒体嵌入与公式)</h2>
+<p>处理视频、地图或外部挂载应用，以及专业数学公式。</p>
+<h3>Bilibili / YouTube 嵌入</h3>
+<section class="rmd-block rmd-embed rmd-embed-video" data-rmd-block="embed" style="--rmd-aspect-ratio: 16/9"><iframe title="Embed" src="about:blank" data-src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen loading="lazy"></iframe></section>
+<h3>LaTeX 数学公式</h3>
+<section class="rmd-block rmd-math" data-rmd-block="math"><pre><code class="language-latex">\mathcal{L} = \sum_{i=1}^{N} \left( y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i) \right) + \frac{\lambda}{2} \|\mathbf{w}\|_2^2</code></pre></section>
+<hr>
+<h2>6. Grid (网格与瀑布流)</h2>
+<p>v0.2 引入了灵活的多列定义和瀑布流排版能力。</p>
+<h3>瀑布流模式 (Masonry)</h3>
+<section class="rmd-block rmd-grid" data-rmd-block="grid" data-columns="3" data-gap="sm" data-layout="masonry"><div class="rmd-grid-cell"><aside class="rmd-block rmd-callout rmd-callout-info" data-rmd-block="callout" data-kind="info"><h3 class="rmd-callout-title">轻量级瀑布流</h3><div class="rmd-callout-body"><p>采用 CSS Column 分栏实现，从上到下填充，绝不断行。</p></div></aside></div></section>
+<hr>
+<aside class="rmd-block rmd-callout rmd-callout-tip" data-rmd-block="callout" data-kind="tip"><h3 class="rmd-callout-title">无需 JS</h3><div class="rmd-callout-body"><p>相较于绝对定位的计算方案，Masonry 大幅节省了前端计算开销。</p></div></aside>
+<hr>
+<h2><img src="https://picsum.photos/300/500?random=4" alt="Tall Image"></h2>
+<aside class="rmd-block rmd-callout rmd-callout-warning" data-rmd-block="callout" data-kind="warning"><h3 class="rmd-callout-title">浏览器兼容</h3><div class="rmd-callout-body"><p>现代浏览器对 <code>column-count</code> 的支持已经十分完美。</p></div></aside>
+<hr>
+<p><img src="https://picsum.photos/300/200?random=5" alt="Short Image">
+:::</p>
+<hr>
+<h2>7. 增强图表 (Charts v0.2)</h2>
+<p>现已支持多种扩展图表及复杂的双 Y 轴与工具提示配置。</p>
+<h3>堆叠面积图 (带图例与副轴)</h3>
+<section class="rmd-block rmd-chart rmd-chart-area" data-rmd-block="chart" data-y2="活跃用户(万)" data-legend="top"><h3 class="rmd-block-title">年度收入与活跃用户走势</h3><svg role="img" viewBox="0 0 368 190" class="rmd-chart-svg"><title>年度收入与活跃用户走势</title><desc>Q1_2025: 120, 40; Q2_2025: 150, 45; Q3_2025: 180, 60; Q4_2025: 240, 85; Q1_2026: 310, 110</desc><g class="rmd-chart-point" data-label="Q1_2025" data-value="120"><rect x="24" y="104" width="36" height="46" rx="4"></rect><text x="42" y="170" text-anchor="middle">Q1_2025</text><text x="42" y="96" text-anchor="middle">120</text></g><g class="rmd-chart-point" data-label="Q2_2025" data-value="150"><rect x="88" y="92" width="36" height="58" rx="4"></rect><text x="106" y="170" text-anchor="middle">Q2_2025</text><text x="106" y="84" text-anchor="middle">150</text></g><g class="rmd-chart-point" data-label="Q3_2025" data-value="180"><rect x="152" y="80" width="36" height="70" rx="4"></rect><text x="170" y="170" text-anchor="middle">Q3_2025</text><text x="170" y="72" text-anchor="middle">180</text></g><g class="rmd-chart-point" data-label="Q4_2025" data-value="240"><rect x="216" y="57" width="36" height="93" rx="4"></rect><text x="234" y="170" text-anchor="middle">Q4_2025</text><text x="234" y="49" text-anchor="middle">240</text></g><g class="rmd-chart-point" data-label="Q1_2026" data-value="310"><rect x="280" y="30" width="36" height="120" rx="4"></rect><text x="298" y="170" text-anchor="middle">Q1_2026</text><text x="298" y="22" text-anchor="middle">310</text></g></svg></section>
+<h3>散点分布图 (Scatter)</h3>
+<section class="rmd-block rmd-chart rmd-chart-scatter" data-rmd-block="chart" data-legend="bottom"><h3 class="rmd-block-title">性能与能耗分布模型</h3><svg role="img" viewBox="0 0 368 190" class="rmd-chart-svg"><title>性能与能耗分布模型</title><desc>Model_A: 12, 300; Model_B: 15, 450; Model_C: 8, 150; Model_D: 22, 800; Model_E: 18, 600</desc><g class="rmd-chart-point" data-label="Model_A" data-value="12"><rect x="24" y="146" width="36" height="4" rx="4"></rect><text x="42" y="170" text-anchor="middle">Model_A</text><text x="42" y="138" text-anchor="middle">12</text></g><g class="rmd-chart-point" data-label="Model_B" data-value="15"><rect x="88" y="146" width="36" height="4" rx="4"></rect><text x="106" y="170" text-anchor="middle">Model_B</text><text x="106" y="138" text-anchor="middle">15</text></g><g class="rmd-chart-point" data-label="Model_C" data-value="8"><rect x="152" y="146" width="36" height="4" rx="4"></rect><text x="170" y="170" text-anchor="middle">Model_C</text><text x="170" y="138" text-anchor="middle">8</text></g><g class="rmd-chart-point" data-label="Model_D" data-value="22"><rect x="216" y="146" width="36" height="4" rx="4"></rect><text x="234" y="170" text-anchor="middle">Model_D</text><text x="234" y="138" text-anchor="middle">22</text></g><g class="rmd-chart-point" data-label="Model_E" data-value="18"><rect x="280" y="146" width="36" height="4" rx="4"></rect><text x="298" y="170" text-anchor="middle">Model_E</text><text x="298" y="138" text-anchor="middle">18</text></g></svg></section>
+<hr>
+<h2>8. 增强滑块 (Slider v0.2)</h2>
+<p>支持双滑块、刻度盘 (<code>marks</code>) 与对数比例 (<code>scale=&quot;log&quot;</code>)。</p>
+<div class="rmd-block rmd-slider" data-rmd-block="slider" data-name="volume_range" data-unit="QPS" data-scale="log" data-marks="10,100,500,1000"><label for="rmd-slider-volume_range">动态请求限制 (区间)</label><input id="rmd-slider-volume_range" type="range" min="10" max="1000" step="10" value="100,500" aria-label="动态请求限制 (区间)"><output>100,500 QPS</output></div>
+<hr>
+<h2>9. 经典互动块复习 (Callout, Tabs, Diff, Flow)</h2>
+<section class="rmd-block rmd-tabs" data-rmd-block="tabs" data-default=" React"><div role="tablist"><button type="button" role="tab" aria-selected="true" data-label=" React"> React</button><button type="button" role="tab" aria-selected="false" data-label=" Vue"> Vue</button></div><section role="tabpanel" data-label=" React"><pre class="rmd-code"><code class="language-jsx">export function Hello() {
+  return &lt;div className=&quot;rmd&quot;&gt;Hello&lt;/div&gt;;
+}</code></pre></section><section role="tabpanel" hidden data-label=" Vue"><pre class="rmd-code"><code class="language-vue">&lt;template&gt;
+  &lt;div class=&quot;rmd&quot;&gt;Hello&lt;/div&gt;
+&lt;/template&gt;</code></pre></section></section>
+<section class="rmd-block rmd-flow" data-rmd-block="flow" data-direction="lr"><ol><li><span>Parser</span> <span aria-hidden="true">→</span> <span>Validator</span></li><li><span>Validator</span> <span aria-hidden="true">→</span> <span>Renderer</span></li><li><span>Renderer</span> <span aria-hidden="true">→</span> <span>HTML</span></li><li><span>HTML</span> <span aria-hidden="true">→</span> <span>Browser</span></li></ol></section>
+<section class="rmd-block rmd-diff" data-rmd-block="diff"><h3 class="rmd-block-title">v0.1 to v0.2 升级差异</h3><pre><div class="rmd-diff-line rmd-diff-remove"><code>- import { parseOld } from &quot;parser&quot;;</code> <mark>已弃用</mark></div><div class="rmd-diff-line rmd-diff-add"><code>+ import { parseCoreBlock } from &quot;blocks-core&quot;;</code></div><div class="rmd-diff-line rmd-diff-add"><code>+ import { renderTimeline, renderKanban } from &quot;renderer-core&quot;;</code></div></pre></section>
+<section class="rmd-block rmd-export" data-rmd-block="export" data-format="json" data-references=""><button type="button">复制代码片段</button><pre><code>{
+  &quot;project&quot;: &quot;Rich Markdown&quot;,
+  &quot;version&quot;: &quot;v0.2&quot;,
+  &quot;status&quot;: &quot;Ready for Production&quot;
+}</code></pre></section>
+</main>
+  <script>
+
+function initRichMarkdownTheme() {
+  // Initialize Carousel Autoplay
+  document.querySelectorAll('.rmd-carousel[data-autoplay="true"]').forEach(carousel => {
+    const track = carousel.querySelector('.rmd-carousel-track');
+    const interval = parseInt(carousel.getAttribute('data-interval') || '3000', 10);
+    if (!track) return;
+    
+    let timer = null;
+    let isHovered = false;
+
+    const play = () => {
+      timer = setInterval(() => {
+        if (isHovered) return;
+        const currentScroll = track.scrollLeft;
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        
+        if (currentScroll >= maxScroll - 1) {
+          track.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          track.scrollBy({ left: track.clientWidth, behavior: 'smooth' });
+        }
+      }, interval);
+    };
+
+    carousel.addEventListener('mouseenter', () => isHovered = true);
+    carousel.addEventListener('mouseleave', () => isHovered = false);
+    
+    play();
+  });
+
+  // Initialize Math via KaTeX (Lazy Load)
+  const mathBlocks = document.querySelectorAll('.rmd-math code.language-latex');
+  if (mathBlocks.length > 0) {
+    const loadScript = (src) => new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+
+    const loadStyle = (href) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.appendChild(link);
+    };
+
+    loadStyle('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css');
+    loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js').then(() => {
+      mathBlocks.forEach(block => {
+        try {
+          const content = block.textContent;
+          const parent = block.parentElement;
+          if (parent && typeof katex !== 'undefined') {
+            const span = document.createElement('span');
+            katex.render(content, span, { displayMode: true, throwOnError: false });
+            parent.replaceWith(span);
+          }
+        } catch(e) {
+          console.error("KaTeX Error:", e);
+        }
+      });
+    }).catch(e => console.warn("Failed to load KaTeX", e));
+  }
+
+  // Initialize Tabs
+  document.querySelectorAll('.rmd-tabs').forEach(tabs => {
+    const buttons = tabs.querySelectorAll('[role="tab"]');
+    const panels = tabs.querySelectorAll('[role="tabpanel"]');
+    
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const targetLabel = button.getAttribute('data-label');
+        
+        buttons.forEach(btn => {
+          btn.setAttribute('aria-selected', btn === button ? 'true' : 'false');
+        });
+        
+        panels.forEach(panel => {
+          if (panel.getAttribute('data-label') === targetLabel) {
+            panel.removeAttribute('hidden');
+          } else {
+            panel.setAttribute('hidden', '');
+          }
+        });
+      });
+    });
+  });
+}
+
+if (typeof document !== 'undefined' && document.readyState !== 'loading') {
+  initRichMarkdownTheme();
+} else if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', initRichMarkdownTheme);
+}
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "rich-markdown",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build:dist": "node scripts/build-dist.js",
+    "test": "node --test",
+    "conformance": "node spec/conformance/runner.js",
+    "rmd": "node packages/cli/src/index.js",
+    "parse:example": "node examples/parse-example.js"
+  },
+  "dependencies": {
+    "markdown-it": "^14.1.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  }
+}

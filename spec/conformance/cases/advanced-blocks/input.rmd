@@ -1,0 +1,30 @@
+:::timeline
+@ 2026-01-01 [title="Start"] [status="success"]
+Done.
+@ 2026-12-01
+Pending.
+:::
+
+:::kanban
+@ Todo
+- Task 1
+@ Done
+- Task 2
+:::
+
+:::details title="More info" open="true"
+Hidden text.
+:::
+
+:::carousel autoplay="true"
+1
+---
+2
+:::
+
+:::embed type="youtube" id="123"
+:::
+
+:::math
+E = mc^2
+:::

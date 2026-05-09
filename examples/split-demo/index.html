@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./rmd.min.js"></script>
+<link rel="stylesheet" href="./themes/tech-dark.css">
+</head>
+<body>
+<div id="rmd-root"></div>
+<script type="application/rmd">---
+title: 支付服务限流方案对比
+theme: tech-dark
+share: team
+---
+
+# 支付服务限流方案对比
+
+我们要给支付服务选一个限流策略。三种主流方案，按"突发友好度"和
+"实现复杂度"两条标准评估。
+
+## 三个候选
+
+:::grid 3
+### 令牌桶
+固定速率往桶里加令牌，请求消耗令牌。
+**优点**：突发友好
+**缺点**：实现略复杂
+---
+### 漏桶
+按固定速率漏出请求，超过缓冲队列直接拒绝。
+**优点**：流量平滑
+**缺点**：突发被砍
+---
+### 滑动窗口
+按时间窗口统计请求数，超过阈值拒绝。
+**优点**：实现简单
+**缺点**：边界突刺
+:::
+
+## 性能对比
+
+:::chart bar title="1000 RPS 压测下的 P99 延迟（ms，越低越好）"
+令牌桶 23
+漏桶 19
+滑动窗口 41
+:::
+
+## 选型建议
+
+:::callout tip
+**推荐令牌桶**：在突发场景下延迟和公平性平衡最好，
+代价是实现略复杂——但这部分可以靠成熟库覆盖。
+:::
+
+## 调一下试试
+
+:::slider name=capacity min=10 max=1000 step=10 default=200
+:::
+:::slider name=refill_rate min=1 max=200 step=1 default=50
+:::
+:::slider name=burst_window min=1 max=60 step=1 default=10
+:::
+
+:::export label="复制为限流配置"
+rate_limiter:
+  type: token_bucket
+  capacity: {{capacity}}
+  refill_rate: {{refill_rate}}
+  burst_window_seconds: {{burst_window}}
+:::
+
+## 实施流程
+
+:::flow
+设计 -> code review -> 灰度 -> 全量
+灰度 -> 异常 -> 回滚
+:::
+
+## 与现状的差异
+
+:::diff
+- @rate_limit(window=60, max=100)
++ @token_bucket(capacity=200, refill=50)  # 加了突发保护
+:::
+</script>
+<script>RMD.render({source:document.querySelector('script[type="application/rmd"]').textContent,target:document.getElementById('rmd-root'),theme:"tech-dark"});</script>
+</body>
+</html>

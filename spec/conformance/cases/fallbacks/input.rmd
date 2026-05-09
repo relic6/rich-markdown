@@ -1,0 +1,16 @@
+# Fallbacks
+
+:::unknown custom=1
+hello
+:::
+
+:::chart nope
+A 1
+:::
+
+:::slider name=bad-name min=0 max=10
+:::
+
+:::flow
+lonely
+:::

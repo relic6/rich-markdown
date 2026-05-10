@@ -1,0 +1,64 @@
+---
+title: "Storage Tier Decision Report"
+theme: default
+share: team
+description: "Comparison of hot/warm/cold storage strategies for the analytics pipeline."
+---
+
+# Storage Tier Decision Report
+
+We need to pick a storage strategy for the analytics pipeline that handles
+~3 TB/day. Three candidates evaluated against latency, cost, and operational
+complexity.
+
+## Candidates
+
+:::grid 3
+### Hot only
+All data on NVMe SSD.
+**Pros**: lowest read latency (≈2 ms).
+**Cons**: $$$ per TB; capacity ceiling reached in ~6 months.
+---
+### Tiered (hot + cold)
+Recent 7 days on SSD, older on object storage.
+**Pros**: 70% cost reduction, latency unchanged for typical queries.
+**Cons**: needs lifecycle automation; cold-restore latency 30-60 s.
+---
+### Cold only
+Everything on object storage with index cache.
+**Pros**: cheapest; effectively unlimited.
+**Cons**: P95 read latency 1.5 s, breaks the SLA for live dashboards.
+:::
+
+## Cost vs Latency
+
+:::chart bar title="Monthly cost (k$) vs P95 read latency (ms)" y="cost(k$)" y2="P95(ms)" legend=top
+HotOnly      48 2
+Tiered       14 2
+ColdOnly     3  1500
+:::
+
+## Recommendation
+
+:::callout tip title="Pick Tiered"
+Tiered storage hits the SLA, costs roughly a third of hot-only, and the
+lifecycle automation is a one-time investment we already use for backups.
+:::
+
+## Rollout Plan
+
+:::flow direction=lr
+Spec -> Review -> Migrate cold path -> Enable lifecycle -> Monitor
+Migrate cold path -> Issue -> Pause and audit
+:::
+
+## Risk Register
+
+:::details title="Operational risks and mitigations"
+1. **Cold restore stalls during peak query**: cap concurrent restore jobs;
+   surface a "restoring" badge in the UI so users don't retry.
+2. **Lifecycle policy misfires and deletes hot data**: dry-run mode for first
+   7 days; alert on >1% delta vs expected size.
+3. **Object storage region outage**: keep last 24h of cold data mirrored to a
+   second region; documented failover runbook.
+:::

@@ -1,0 +1,24 @@
+{
+  "name": "@rmd/obsidian-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.config.mjs production",
+    "dev": "node esbuild.config.mjs",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@rmd/parser-core": "0.1.0",
+    "@rmd/renderer": "0.1.0",
+    "@rmd/renderer-core": "0.1.0",
+    "@rmd/runtime": "0.1.0",
+    "@rmd/themes-default": "0.1.0"
+  },
+  "devDependencies": {
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.8",
+    "obsidian": "^1.8.7",
+    "typescript": "^5.9.3"
+  }
+}

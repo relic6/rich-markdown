@@ -1,0 +1,53 @@
+---
+title: "Rate Limiter Config — Tune & Copy"
+theme: default
+share: private
+description: "Adjust the token-bucket parameters and copy the resulting YAML."
+---
+
+# Rate Limiter Config — Tune & Copy
+
+Drag the sliders to tune the token-bucket rate limiter. The export button
+below copies the matching YAML config straight to your clipboard.
+
+## Parameters
+
+:::slider name=capacity label="Bucket capacity" min=10 max=2000 step=10 default=200 unit=req
+:::
+
+:::slider name=refill_rate label="Refill rate" min=1 max=500 step=1 default=50 unit=req/s
+:::
+
+:::slider name=burst_window label="Burst window" min=1 max=120 step=1 default=10 unit=s
+:::
+
+## Generated YAML
+
+:::export label="Copy YAML config" format=text
+rate_limiter:
+  type: token_bucket
+  capacity: {{capacity | int}}
+  refill_rate: {{refill_rate | int}}
+  burst_window_seconds: {{burst_window | int}}
+:::
+
+## How requests flow
+
+:::flow direction=lr
+Request -> Bucket has token? -> Allow
+Bucket has token? -> Refill check -> Allow
+Bucket has token? -> Refill check -> Reject 429
+:::
+
+## Tradeoffs
+
+:::callout warning title="Watch the burst window"
+A wide burst window smooths short spikes but lets sustained overload through
+longer. If your downstream is fragile, prefer narrow windows even at the cost
+of more 429s.
+:::
+
+:::callout tip title="Sane starting point"
+For most APIs, capacity ≈ 4× refill rate, burst window ≈ 10 s. Adjust from
+there based on observed P99 incident shape.
+:::

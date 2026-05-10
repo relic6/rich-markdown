@@ -1,16 +1,18 @@
 # Rich Markdown Blocks (v0.2)
 
-These are the blocks supported by the current renderer (`packages/blocks-core`).
-Use the smallest set that conveys meaning. Prefer plain Markdown for narrative.
+Complete reference for the 14 blocks supported by the current renderer
+(`packages/blocks-core`). Use the smallest set that conveys meaning. Prefer
+plain Markdown for narrative.
 
-Identifiers (block names, slider variable names) are case-sensitive.
-Attribute order does not matter; positional arguments come immediately after the
-block name.
+Identifiers are case-sensitive. Attribute order does not matter; positional
+arguments come immediately after the block name.
+
+---
 
 ## chart
 
-Compact data visualization. Each line is `{label} {value} [{value2} ...]`.
-Values are space-separated. Multi-value rows become multi-series.
+Compact data visualization. Each line is `{label} {value} [{value2} ...]`,
+space-separated. Multi-value rows become multi-series.
 
 ```rmd
 :::chart bar title="P99 latency (ms)" emphasis=primary
@@ -23,9 +25,7 @@ SlidingWindow 41
 Types (positional, required): `bar`, `line`, `pie`, `scatter`, `radar`, `area`,
 `donut`, `heatmap`. `pie` requires single value per row.
 
-Attributes:
-
-| name | values | default | notes |
+| attribute | values | default | notes |
 |---|---|---|---|
 | `title` | string | empty | chart title |
 | `x` / `y` / `y2` | string | null | axis labels (use `y2` for dual axis) |
@@ -33,7 +33,7 @@ Attributes:
 | `tooltip` | `true` / `false` | `true` | hover tooltip |
 | `emphasis` | `primary` / `secondary` / `none` | `none` | theme-controlled accent |
 
-Multi-series example:
+Multi-series + dual axis:
 
 ```rmd
 :::chart area title="Revenue vs MAU" y="Revenue($M)" y2="MAU(K)" legend=top
@@ -43,6 +43,8 @@ Q3_2025 180 60
 Q4_2025 240 85
 :::
 ```
+
+---
 
 ## grid
 
@@ -64,14 +66,14 @@ Safe, slower.
 Positional: column count (1–12) or comma-separated responsive breakpoints
 (e.g. `1,2,4` for mobile/tablet/desktop).
 
-Attributes:
-
-| name | values | default | notes |
+| attribute | values | default | notes |
 |---|---|---|---|
 | `gap` | `sm` / `md` / `lg` | `md` | column spacing |
 | `layout` | `default` / `masonry` | `default` | masonry uses CSS columns (no JS) |
 
 `grid` cannot nest inside another `grid`. Maximum 12 cells.
+
+---
 
 ## callout
 
@@ -84,11 +86,13 @@ Pick token bucket for burst-friendly traffic.
 ```
 
 Positional kind: `info` / `tip` / `warning` / `danger` / `success`.
-Optional `title` attribute.
+Optional `title`.
+
+---
 
 ## slider
 
-Reader-adjustable number with optional range/log/marks. Pair with `export`.
+Reader-adjustable number. Pair with `export` to copy the tuned value back.
 
 ```rmd
 :::slider name=capacity min=10 max=1000 step=10 default=200 unit=req
@@ -104,9 +108,7 @@ Range slider (two values):
 
 Required: `name` (matches `^[a-zA-Z_][a-zA-Z0-9_]*$`), `min`, `max` (`max > min`).
 
-Attributes:
-
-| name | type | default | notes |
+| attribute | type | default | notes |
 |---|---|---|---|
 | `step` | number > 0 | `1` | |
 | `default` | number or `n,m` | `min` | range slider when comma value |
@@ -116,6 +118,8 @@ Attributes:
 | `marks` | comma-separated numbers | empty | discrete snap points |
 
 Slider names must be unique per document. Block body must be empty.
+
+---
 
 ## export
 
@@ -130,14 +134,14 @@ rate_limiter:
 :::
 ```
 
-Attributes:
-
-| name | values | default | notes |
+| attribute | values | default | notes |
 |---|---|---|---|
 | `label` | string | `复制` | button text |
 | `format` | `text` / `markdown` / `json` | `text` | clipboard MIME |
 
 Unknown variables render as `[未定义:name]` and warn in the console.
+
+---
 
 ## flow
 
@@ -153,6 +157,8 @@ Canary -> Incident -> Rollback
 Each line: `Node -> Node -> ...`. Same-name nodes merge.
 `direction`: `lr` (default) or `tb`.
 
+---
+
 ## diff
 
 Unified-diff style. `+` add, `-` remove, leading space context.
@@ -164,6 +170,8 @@ Unified-diff style. `+` add, `-` remove, leading space context.
 + @token_bucket(capacity=200, refill=50) @注: adds burst protection
 :::
 ```
+
+---
 
 ## tabs
 
@@ -179,6 +187,8 @@ Implementation details.
 ```
 
 Cannot nest inside another `tabs`.
+
+---
 
 ## timeline
 
@@ -203,6 +213,8 @@ Body is normal Markdown until the next `@`.
 `status`: `success` / `warning` / `danger` / `pending` / `default`.
 `direction`: `vertical` (default) or `horizontal`.
 
+---
+
 ## kanban
 
 Columns of cards. `@ {column title}` on its own line starts a column.
@@ -225,6 +237,8 @@ Columns of cards. `@ {column title}` on its own line starts a column.
 
 Use lists (Markdown task lists or bullets) for cards.
 
+---
+
 ## details
 
 Collapsible block. Wraps a native `<details>`.
@@ -237,12 +251,12 @@ Collapsible block. Wraps a native `<details>`.
 :::
 ```
 
-Attributes:
-
-| name | values | default |
+| attribute | values | default |
 |---|---|---|
 | `title` | string | empty |
 | `open` | `true` / `false` | `false` |
+
+---
 
 ## carousel
 
@@ -255,31 +269,26 @@ First content
 ---
 ### Slide 2
 Second content
----
-### Slide 3
-Third content
 :::
 ```
 
-Attributes:
-
-| name | values | default |
+| attribute | values | default |
 |---|---|---|
 | `autoplay` | `true` / `false` | `false` |
 | `interval` | number (ms) | `3000` |
 
+---
+
 ## embed
 
-Embed external media (video, map, app). Theme-controlled aspect ratio.
+Embed external media (video, map, app). Aspect ratio is theme-controlled.
 
 ```rmd
 :::embed type=video id="https://www.youtube.com/embed/XXXX" aspect-ratio="16/9"
 :::
 ```
 
-Attributes:
-
-| name | values | default |
+| attribute | values | default |
 |---|---|---|
 | `type` | `video` / `map` / `iframe` | `unknown` |
 | `id` | URL or external id | empty |
@@ -287,16 +296,20 @@ Attributes:
 
 Block body is ignored.
 
+---
+
 ## math
 
-LaTeX math block. Renderer outputs as math container; the active theme decides
-whether to typeset (KaTeX/MathJax) or fall back to monospace.
+LaTeX math block. Renderer outputs as math container; the active theme
+decides whether to typeset (KaTeX/MathJax) or fall back to monospace.
 
 ```rmd
 :::math
 \mathcal{L} = \sum_{i=1}^{N} \left( y_i \log(\hat{y}_i) + (1-y_i) \log(1-\hat{y}_i) \right)
 :::
 ```
+
+---
 
 ## Choosing Blocks
 
@@ -308,14 +321,14 @@ whether to typeset (KaTeX/MathJax) or fall back to monospace.
 | Release / workflow | `flow` + `callout` + `timeline` |
 | Status report | `chart` + `timeline` + `kanban` |
 | Research brief | `chart` + `grid` + `callout` + `details` |
-| Long doc with collapsible appendix | `details` + `tabs` |
-| Visual gallery / showcase | `carousel` + `grid masonry` |
-| Math / formal explanation | `math` + `callout` |
+| Long doc with appendix | `details` + `tabs` |
+| Visual gallery | `carousel` + `grid layout=masonry` |
+| Math / formal | `math` + `callout` |
 
 ## Don't
 
 - Don't add CSS, color, pixel, or font attributes — they belong to the theme.
 - Don't nest `grid` in `grid`, or `tabs` in `tabs`.
 - Don't put body content inside `:::slider` or `:::embed`.
-- Don't invent new positional arguments beyond what's listed here.
+- Don't invent positional arguments beyond what's listed here.
 - Don't use experimental block names that aren't in this file.

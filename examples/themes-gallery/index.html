@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rich Markdown — Themes Gallery</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f7f5;
+      --fg: #1d1d1b;
+      --muted: #6b6b66;
+      --line: #e6e6e1;
+      --primary: #2c8090;
+      --primary-strong: #1f5e6b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 24px 56px;
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.55 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      letter-spacing: -0.01em;
+    }
+    p.lede {
+      margin: 0 0 32px;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 16px 18px;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 6px 18px rgb(44 128 144 / 0.08);
+    }
+    .card h2 {
+      margin: 0 0 4px;
+      font-size: 17px;
+    }
+    .card .summary {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 13.5px;
+      transition: background .12s ease, border-color .12s ease;
+    }
+    .links a:hover {
+      background: #fafaf7;
+      border-color: var(--primary);
+    }
+    .links a span.size {
+      color: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    section + section { margin-top: 36px; }
+    .section-h {
+      margin: 0 0 12px;
+      font-size: 14px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    footer {
+      margin-top: 48px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Rich Markdown — Themes Gallery</h1>
+    <p class="lede">
+      四套官方主题分别在两份代表性 <code>.rmd</code> 上的实际渲染。同一份源文件，
+      切换主题完全不动源码、零额外 token 成本，验证 PRINCIPLES P6（主题只能改样式）+ ARCHITECTURE TD-004（主题用 CSS 变量，禁止 JS）。
+    </p>
+
+    <section>
+      <p class="section-h">decision-report.rmd · grid + chart + callout + flow + details</p>
+      <div class="grid">
+        <article class="card">
+          <h2>default</h2>
+          <p class="summary">温和奶纸背景 + 鼠尾草色，项目参考态。</p>
+          <div class="links">
+            <a href="decision-report--default.html">在浏览器打开 <span class="size">~28 KB</span></a>
+          </div>
+        </article>
+        <article class="card">
+          <h2>tech-dark</h2>
+          <p class="summary">深夜底色 + 霓虹薄荷绿主色 + 紫罗兰强调。</p>
+          <div class="links">
+            <a href="decision-report--tech-dark.html">在浏览器打开 <span class="size">~36 KB</span></a>
+          </div>
+        </article>
+        <article class="card">
+          <h2>paper</h2>
+          <p class="summary">学术暖白稿纸 + 衬线字体 + 克制配色。</p>
+          <div class="links">
+            <a href="decision-report--paper.html">在浏览器打开 <span class="size">~37 KB</span></a>
+          </div>
+        </article>
+        <article class="card">
+          <h2>notion-like</h2>
+          <p class="summary">纯白 + 系统字体 + 胶囊控件 + 卡片化 callout。</p>
+          <div class="links">
+            <a href="decision-report--notion-like.html">在浏览器打开 <span class="size">~38 KB</span></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-h">tunable-config.rmd · slider + export + flow + callout</p>
+      <div class="grid">
+        <article class="card">
+          <h2>default</h2>
+          <p class="summary">温和奶纸背景 + 鼠尾草色。</p>
+          <div class="links">
+            <a href="tunable-config--default.html">在浏览器打开 <span class="size">~26 KB</span></a>
+          </div>
+        </article>
+        <article class="card">
+          <h2>tech-dark</h2>
+          <p class="summary">霓虹滑块 + 发光主色按钮。</p>
+          <div class="links">
+            <a href="tunable-config--tech-dark.html">在浏览器打开 <span class="size">~35 KB</span></a>
+          </div>
+        </article>
+        <article class="card">
+          <h2>paper</h2>
+          <p class="summary">书本式按钮 + 等宽数值显示。</p>
+          <div class="links">
+            <a href="tunable-config--paper.html">在浏览器打开 <span class="size">~36 KB</span></a>
+          </div>
+        </article>
+        <article class="card">
+          <h2>notion-like</h2>
+          <p class="summary">胶囊导出按钮 + Notion 蓝主色。</p>
+          <div class="links">
+            <a href="tunable-config--notion-like.html">在浏览器打开 <span class="size">~37 KB</span></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer>
+      所有 8 份 HTML 都是 <code>rmd build --mode self-contained</code> 产出，CSS / JS / AST 全部内联，
+      可直接在 Claude 桌面版 artifact、邮件、离线归档等任何 sandbox 中打开。
+      源文件不变，主题切换零 token 成本。
+    </footer>
+  </main>
+</body>
+</html>

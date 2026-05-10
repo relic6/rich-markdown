@@ -1,0 +1,1459 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storage Tier Decision Report</title>
+<style data-rmd-theme-inline="notion-like">
+:root {
+  --rmd-color-page: #f5f7f4;
+  --rmd-color-bg: #fbfcf8;
+  --rmd-color-surface: #ffffff;
+  --rmd-color-surface-strong: #f0f4ef;
+  --rmd-color-fg: #20251f;
+  --rmd-color-muted: #687064;
+  --rmd-color-subtle: #8b9387;
+  --rmd-color-line: #d7ddd2;
+  --rmd-color-line-strong: #b7c1b0;
+  --rmd-color-primary: #176b72;
+  --rmd-color-primary-strong: #0e4d55;
+  --rmd-color-accent: #c8523e;
+  --rmd-color-success: #2f7d4f;
+  --rmd-color-warning: #a36a1c;
+  --rmd-color-danger: #b63f35;
+  --rmd-color-info: #3867a8;
+  --rmd-font-body: Charter, "Iowan Old Style", "Palatino Linotype", Palatino, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", serif;
+  --rmd-font-ui: "Avenir Next", Avenir, "Gill Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --rmd-font-mono: "SF Mono", "Cascadia Code", "Liberation Mono", Menlo, Consolas, monospace;
+  --rmd-radius-sm: 4px;
+  --rmd-radius-md: 8px;
+  --rmd-radius-lg: 8px;
+  --rmd-spacing-sm: 8px;
+  --rmd-spacing-md: 16px;
+  --rmd-spacing-lg: 28px;
+  --rmd-shadow-sm: 0 1px 2px rgb(23 36 29 / 0.05), 0 8px 22px rgb(23 36 29 / 0.05);
+  --rmd-shadow-md: 0 16px 38px rgb(23 36 29 / 0.09);
+  --rmd-focus-ring: 0 0 0 3px rgb(23 107 114 / 0.2);
+}
+
+body[data-rmd-theme] {
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgb(245 247 244 / 0.92), rgb(238 243 241 / 0.92)),
+    radial-gradient(circle at 18% 12%, rgb(200 82 62 / 0.12), transparent 28rem),
+    radial-gradient(circle at 82% 4%, rgb(23 107 114 / 0.14), transparent 34rem);
+  color: var(--rmd-color-fg);
+}
+
+.rmd-document {
+  box-sizing: border-box;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 72px) clamp(18px, 5vw, 56px);
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-body);
+  font-size: 17px;
+  line-height: 1.72;
+  letter-spacing: 0;
+}
+
+.rmd-document *,
+.rmd-document *::before,
+.rmd-document *::after {
+  box-sizing: border-box;
+}
+
+.rmd-document > :first-child {
+  margin-top: 0;
+}
+
+.rmd-document > :last-child {
+  margin-bottom: 0;
+}
+
+.rmd-document h1,
+.rmd-document h2,
+.rmd-document h3,
+.rmd-document h4,
+.rmd-document h5,
+.rmd-document h6 {
+  margin: 2.2em 0 0.65em;
+  color: #18201a;
+  font-family: var(--rmd-font-ui);
+  font-weight: 720;
+  letter-spacing: 0;
+  line-height: 1.12;
+}
+
+.rmd-document h1 {
+  max-width: 840px;
+  margin-bottom: 0.85em;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--rmd-color-line);
+  font-size: 42px;
+}
+
+.rmd-document h2 {
+  font-size: 28px;
+}
+
+.rmd-document h3 {
+  font-size: 20px;
+}
+
+.rmd-document p,
+.rmd-document ul,
+.rmd-document ol,
+.rmd-document blockquote {
+  margin: 0 0 1.05em;
+}
+
+.rmd-document a {
+  color: var(--rmd-color-primary-strong);
+  text-decoration-color: rgb(23 107 114 / 0.28);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.rmd-document a:hover {
+  color: var(--rmd-color-accent);
+  text-decoration-color: rgb(200 82 62 / 0.42);
+}
+
+.rmd-document strong {
+  color: #111a14;
+  font-weight: 720;
+}
+
+.rmd-document code {
+  border: 1px solid rgb(23 107 114 / 0.14);
+  border-radius: var(--rmd-radius-sm);
+  padding: 0.08em 0.32em;
+  background: rgb(23 107 114 / 0.07);
+  color: #0f4f57;
+  font-family: var(--rmd-font-mono);
+  font-size: 0.88em;
+}
+
+.rmd-document img {
+  max-width: 100%;
+  border-radius: var(--rmd-radius-md);
+}
+
+.rmd-document blockquote {
+  margin: 1.45em 0;
+  border-left: 4px solid var(--rmd-color-primary);
+  padding: 4px 0 4px 18px;
+  color: #3f493d;
+  font-size: 18px;
+}
+
+.rmd-document blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.rmd-document hr {
+  margin: 38px 0;
+  border: 0;
+  border-top: 1px solid var(--rmd-color-line);
+}
+
+.rmd-block {
+  margin: 32px 0;
+}
+
+.rmd-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--rmd-grid-columns, 1), minmax(0, 1fr));
+  gap: 14px;
+}
+
+.rmd-grid[data-columns="2"] { --rmd-grid-columns: 2; }
+.rmd-grid[data-columns="3"] { --rmd-grid-columns: 3; }
+.rmd-grid[data-columns="4"] { --rmd-grid-columns: 4; }
+.rmd-grid[data-columns="5"] { --rmd-grid-columns: 5; }
+.rmd-grid[data-columns="6"] { --rmd-grid-columns: 6; }
+
+.rmd-grid-cell,
+.rmd-callout,
+.rmd-export,
+.rmd-slider,
+.rmd-diff,
+.rmd-flow,
+.rmd-tabs {
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  background: rgb(255 255 255 / 0.86);
+  box-shadow: var(--rmd-shadow-sm);
+}
+
+.rmd-grid-cell {
+  min-width: 0;
+  padding: 18px;
+  border-top: 3px solid rgb(23 107 114 / 0.46);
+}
+
+.rmd-grid-cell > :first-child {
+  margin-top: 0;
+}
+
+.rmd-grid-cell > :last-child {
+  margin-bottom: 0;
+}
+
+.rmd-callout,
+.rmd-export,
+.rmd-diff,
+.rmd-flow,
+.rmd-tabs {
+  padding: 20px;
+}
+
+.rmd-callout {
+  position: relative;
+  overflow: hidden;
+  border-left-width: 5px;
+}
+
+.rmd-callout::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: currentColor;
+  content: "";
+}
+
+.rmd-callout-tip,
+.rmd-callout-success {
+  border-color: rgb(47 125 79 / 0.28);
+  color: var(--rmd-color-success);
+}
+
+.rmd-callout-warning {
+  border-color: rgb(163 106 28 / 0.3);
+  color: var(--rmd-color-warning);
+}
+
+.rmd-callout-danger {
+  border-color: rgb(182 63 53 / 0.3);
+  color: var(--rmd-color-danger);
+}
+
+.rmd-callout-info {
+  border-color: rgb(56 103 168 / 0.28);
+  color: var(--rmd-color-info);
+}
+
+.rmd-callout-title,
+.rmd-block-title {
+  margin: 0 0 12px;
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-ui);
+  font-size: 15px;
+  font-weight: 720;
+}
+
+.rmd-callout-body {
+  color: var(--rmd-color-fg);
+}
+
+.rmd-callout-body > :last-child {
+  margin-bottom: 0;
+}
+
+.rmd-chart {
+  padding: 20px;
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.94), rgb(246 249 244 / 0.92));
+  box-shadow: var(--rmd-shadow-md);
+}
+
+.rmd-chart-svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 220px;
+  padding-top: 6px;
+}
+
+.rmd-chart rect {
+  fill: var(--rmd-color-primary);
+  filter: drop-shadow(0 8px 8px rgb(23 107 114 / 0.16));
+  transition: fill 160ms ease, transform 160ms ease;
+  transform-origin: bottom;
+}
+
+.rmd-chart-point:nth-of-type(2n) rect {
+  fill: var(--rmd-color-accent);
+}
+
+.rmd-chart-point:hover rect {
+  fill: var(--rmd-color-primary-strong);
+  transform: scaleY(1.03);
+}
+
+.rmd-chart text {
+  fill: var(--rmd-color-muted);
+  font-family: var(--rmd-font-ui);
+  font-size: 12px;
+}
+
+.rmd-slider {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.1fr) minmax(180px, 3fr) minmax(58px, auto);
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+}
+
+.rmd-slider label,
+.rmd-slider output {
+  font-family: var(--rmd-font-ui);
+  font-size: 14px;
+  font-weight: 680;
+}
+
+.rmd-slider label {
+  color: #293128;
+}
+
+.rmd-slider output {
+  justify-self: end;
+  min-width: 54px;
+  border: 1px solid rgb(23 107 114 / 0.18);
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: rgb(23 107 114 / 0.08);
+  color: var(--rmd-color-primary-strong);
+  text-align: center;
+}
+
+.rmd-slider input[type="range"] {
+  width: 100%;
+  accent-color: var(--rmd-color-primary);
+  cursor: pointer;
+}
+
+.rmd-slider input[type="range"]:focus-visible,
+.rmd-export button:focus-visible,
+.rmd-tabs [role="tab"]:focus-visible {
+  outline: 0;
+  box-shadow: var(--rmd-focus-ring);
+}
+
+.rmd-export button,
+.rmd-tabs [role="tab"] {
+  border: 1px solid var(--rmd-color-line-strong);
+  border-radius: var(--rmd-radius-sm);
+  padding: 8px 12px;
+  background: var(--rmd-color-surface);
+  color: #243026;
+  font-family: var(--rmd-font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.rmd-export button:hover,
+.rmd-tabs [role="tab"]:hover {
+  border-color: var(--rmd-color-primary);
+  color: var(--rmd-color-primary-strong);
+  transform: translateY(-1px);
+}
+
+.rmd-export button {
+  background: var(--rmd-color-primary);
+  border-color: var(--rmd-color-primary);
+  color: #fff;
+}
+
+.rmd-export button:hover {
+  background: var(--rmd-color-primary-strong);
+  color: #fff;
+}
+
+.rmd-tabs [role="tablist"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.rmd-tabs [role="tab"][aria-selected="true"] {
+  border-color: var(--rmd-color-primary);
+  background: rgb(23 107 114 / 0.1);
+  color: var(--rmd-color-primary-strong);
+}
+
+.rmd-tabs [role="tabpanel"] > :last-child {
+  margin-bottom: 0;
+}
+
+.rmd-code,
+.rmd-export pre,
+.rmd-diff pre {
+  overflow: auto;
+  border: 1px solid rgb(32 37 31 / 0.1);
+  border-radius: var(--rmd-radius-md);
+  background: #15201b;
+  color: #e8eee7;
+  font-family: var(--rmd-font-mono);
+  font-size: 13px;
+  line-height: 1.62;
+}
+
+.rmd-code {
+  padding: 16px;
+}
+
+.rmd-code code,
+.rmd-export pre code,
+.rmd-diff code {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+}
+
+.rmd-export pre,
+.rmd-diff pre {
+  margin: 14px 0 0;
+  padding: 14px;
+}
+
+.rmd-flow ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rmd-flow li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgb(23 107 114 / 0.14);
+  border-radius: var(--rmd-radius-md);
+  padding: 10px 12px;
+  background: rgb(23 107 114 / 0.055);
+  color: #263229;
+  font-family: var(--rmd-font-ui);
+  font-size: 14px;
+}
+
+.rmd-flow li span:nth-child(2) {
+  color: var(--rmd-color-accent);
+  font-weight: 800;
+}
+
+.rmd-diff-line {
+  display: block;
+  padding: 2px 0;
+}
+
+.rmd-diff-line mark {
+  border-radius: 999px;
+  padding: 2px 7px;
+  background: rgb(200 82 62 / 0.18);
+  color: #f0c2b9;
+  font-family: var(--rmd-font-ui);
+  font-size: 12px;
+}
+
+.rmd-diff-add code {
+  color: #9fe0b5;
+}
+
+.rmd-diff-remove code {
+  color: #f1a29a;
+}
+
+@media (max-width: 720px) {
+  .rmd-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rmd-slider {
+    grid-template-columns: 1fr;
+  }
+
+  .rmd-slider output {
+    justify-self: start;
+  }
+
+  .rmd-document h1 {
+    font-size: 32px;
+  }
+
+  .rmd-document h2 {
+    font-size: 24px;
+  }
+}
+
+/* ========================================================================= */
+/* EXTENSION BLOCKS v0.2                                                     */
+/* ========================================================================= */
+
+/* Grid Masonry Layout */
+.rmd-grid[data-layout="masonry"] {
+  display: block;
+  column-gap: 14px;
+  column-count: var(--rmd-grid-columns, 1);
+}
+
+.rmd-grid[data-layout="masonry"] > .rmd-grid-cell {
+  break-inside: avoid;
+  margin-bottom: 14px;
+}
+
+/* Timeline */
+.rmd-timeline {
+  margin: 32px 0;
+}
+
+.rmd-timeline ol {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rmd-timeline-vertical ol::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 5px;
+  width: 2px;
+  background: var(--rmd-color-line);
+  content: "";
+}
+
+.rmd-timeline-vertical .rmd-timeline-item {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 24px;
+}
+
+.rmd-timeline-vertical .rmd-timeline-item::before {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--rmd-color-surface);
+  border: 2px solid var(--rmd-color-line-strong);
+  content: "";
+  z-index: 1;
+}
+
+.rmd-timeline-horizontal ol {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding-bottom: 10px;
+}
+
+.rmd-timeline-horizontal .rmd-timeline-item {
+  flex: 0 0 auto;
+  min-width: 200px;
+  position: relative;
+  padding-top: 28px;
+}
+
+.rmd-timeline-horizontal ol::before {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--rmd-color-line);
+  content: "";
+}
+
+.rmd-timeline-horizontal .rmd-timeline-item::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--rmd-color-surface);
+  border: 2px solid var(--rmd-color-line-strong);
+  content: "";
+  z-index: 1;
+}
+
+.rmd-timeline-time {
+  font-family: var(--rmd-font-mono);
+  font-size: 13px;
+  color: var(--rmd-color-subtle);
+  margin-bottom: 4px;
+}
+
+.rmd-timeline-content h4 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--rmd-color-fg);
+}
+
+.rmd-timeline-status-success::before { border-color: var(--rmd-color-success) !important; background: var(--rmd-color-success) !important; }
+.rmd-timeline-status-warning::before { border-color: var(--rmd-color-warning) !important; background: var(--rmd-color-warning) !important; }
+.rmd-timeline-status-danger::before { border-color: var(--rmd-color-danger) !important; background: var(--rmd-color-danger) !important; }
+.rmd-timeline-status-pending::before { border-color: var(--rmd-color-primary) !important; }
+
+/* Kanban */
+.rmd-kanban {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+  align-items: flex-start;
+  scroll-snap-type: x mandatory;
+}
+
+.rmd-kanban-column {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
+  background: rgb(243 246 242 / 0.85);
+  border-radius: var(--rmd-radius-md);
+  padding: 16px;
+  border: 1px solid var(--rmd-color-line);
+}
+
+.rmd-kanban-column h3 {
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 720;
+  color: var(--rmd-color-fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rmd-kanban-column h3::before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rmd-color-primary);
+  box-shadow: 0 0 0 3px rgb(23 107 114 / 0.15);
+}
+
+.rmd-kanban-column:nth-child(2n) h3::before { background: var(--rmd-color-warning); box-shadow: 0 0 0 3px rgb(163 106 28 / 0.15); }
+.rmd-kanban-column:nth-child(3n) h3::before { background: var(--rmd-color-success); box-shadow: 0 0 0 3px rgb(47 125 79 / 0.15); }
+.rmd-kanban-column:nth-child(4n) h3::before { background: var(--rmd-color-accent); box-shadow: 0 0 0 3px rgb(200 82 62 / 0.15); }
+
+.rmd-kanban-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rmd-kanban-cards ul,
+.rmd-kanban-cards ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rmd-kanban-cards > :not(ul):not(ol),
+.rmd-kanban-cards li {
+  background: var(--rmd-color-surface);
+  border-radius: var(--rmd-radius-sm);
+  padding: 14px;
+  margin: 0;
+  box-shadow: 0 2px 5px rgb(23 36 29 / 0.04);
+  border: 1px solid var(--rmd-color-line);
+  font-size: 15px;
+  line-height: 1.5;
+  color: #384236;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+  cursor: default;
+}
+
+.rmd-kanban-cards > :not(ul):not(ol):hover,
+.rmd-kanban-cards li:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--rmd-shadow-sm);
+  border-color: var(--rmd-color-line-strong);
+}
+
+.rmd-kanban-cards li input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: var(--rmd-color-primary);
+}
+
+/* Details */
+.rmd-details {
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  background: rgb(255 255 255 / 0.6);
+  overflow: hidden;
+  transition: background 200ms ease;
+}
+
+.rmd-details[open] {
+  background: var(--rmd-color-surface);
+  box-shadow: var(--rmd-shadow-sm);
+}
+
+.rmd-details summary {
+  padding: 16px 20px;
+  font-family: var(--rmd-font-ui);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rmd-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.rmd-details summary::before {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 6px solid var(--rmd-color-muted);
+  transition: transform 200ms ease;
+}
+
+.rmd-details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.rmd-details-body {
+  padding: 0 20px 20px;
+  border-top: 1px solid transparent;
+}
+
+.rmd-details[open] .rmd-details-body {
+  border-top-color: rgb(23 107 114 / 0.08);
+  padding-top: 16px;
+}
+
+/* Carousel */
+.rmd-carousel {
+  position: relative;
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  overflow: hidden;
+  box-shadow: var(--rmd-shadow-sm);
+  background: var(--rmd-color-surface);
+}
+
+.rmd-carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.rmd-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.rmd-carousel-item {
+  scroll-snap-align: center;
+  flex: 0 0 100%;
+  width: 100%;
+  padding: 24px;
+}
+
+/* Embed */
+.rmd-embed {
+  position: relative;
+  width: 100%;
+  border-radius: var(--rmd-radius-md);
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--rmd-shadow-md);
+}
+
+.rmd-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  aspect-ratio: var(--rmd-aspect-ratio, 16 / 9);
+}
+
+/* Math */
+.rmd-math {
+  display: block;
+  overflow-x: auto;
+  padding: 18px 24px;
+  background: rgb(23 107 114 / 0.04);
+  border-radius: var(--rmd-radius-md);
+  border: 1px solid rgb(23 107 114 / 0.12);
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-mono);
+  font-size: 15px;
+  text-align: center;
+}
+
+.rmd-math pre {
+  margin: 0;
+}
+
+/* ========================================================================= */
+/* THEME: notion-like — overrides applied on top of the default layout       */
+/* ========================================================================= */
+
+:root {
+  --rmd-color-page: #ffffff;
+  --rmd-color-bg: #ffffff;
+  --rmd-color-surface: #ffffff;
+  --rmd-color-surface-strong: #f7f6f3;
+  --rmd-color-fg: #37352f;
+  --rmd-color-muted: #787774;
+  --rmd-color-subtle: #9b9a97;
+  --rmd-color-line: #ecebe9;
+  --rmd-color-line-strong: #d3d1cb;
+  --rmd-color-primary: #2383e2;
+  --rmd-color-primary-strong: #1a6dc0;
+  --rmd-color-accent: #eb5757;
+  --rmd-color-success: #0f7b6c;
+  --rmd-color-warning: #cb912f;
+  --rmd-color-danger: #e03e3e;
+  --rmd-color-info: #2383e2;
+  --rmd-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --rmd-font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", "PingFang SC", sans-serif;
+  --rmd-font-mono: "SFMono-Regular", "Menlo", "Consolas", "PT Mono", "Liberation Mono", monospace;
+  --rmd-radius-sm: 4px;
+  --rmd-radius-md: 6px;
+  --rmd-radius-lg: 10px;
+  --rmd-spacing-sm: 8px;
+  --rmd-spacing-md: 14px;
+  --rmd-spacing-lg: 24px;
+  --rmd-shadow-sm: 0 1px 2px rgb(15 15 15 / 0.04);
+  --rmd-shadow-md: 0 4px 12px rgb(15 15 15 / 0.06);
+  --rmd-focus-ring: 0 0 0 2px rgb(35 131 226 / 0.45);
+}
+
+/* Pure white, no gradient, no decorative tint */
+body[data-rmd-theme] {
+  background: #ffffff;
+  color: var(--rmd-color-fg);
+}
+
+.rmd-document {
+  max-width: 720px;
+  padding: clamp(40px, 8vw, 96px) clamp(20px, 5vw, 48px) clamp(40px, 6vw, 64px);
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: -0.003em;
+  color: var(--rmd-color-fg);
+}
+
+/* Headings — system font, tighter, no underline on H1 */
+.rmd-document h1,
+.rmd-document h2,
+.rmd-document h3,
+.rmd-document h4,
+.rmd-document h5,
+.rmd-document h6 {
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-ui);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+}
+
+.rmd-document h1 {
+  margin-top: 0;
+  margin-bottom: 0.6em;
+  padding-bottom: 0;
+  border-bottom: 0;
+  font-size: 40px;
+  font-weight: 800;
+}
+
+.rmd-document h2 {
+  margin-top: 1.8em;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.rmd-document h3 {
+  margin-top: 1.4em;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.rmd-document a {
+  color: var(--rmd-color-fg);
+  text-decoration: underline;
+  text-decoration-color: var(--rmd-color-line-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.rmd-document a:hover {
+  color: var(--rmd-color-fg);
+  text-decoration-color: var(--rmd-color-fg);
+}
+
+.rmd-document strong {
+  color: var(--rmd-color-fg);
+  font-weight: 700;
+}
+
+/* Notion-style inline code — pink-tinged on neutral pill */
+.rmd-document code {
+  background: #f1f1ef;
+  border: 0;
+  color: #eb5757;
+  font-size: 0.86em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Notion-style block quote — accent left border, neutral text */
+.rmd-document blockquote {
+  margin-left: 0;
+  margin-right: 0;
+  padding: 4px 0 4px 18px;
+  border-left: 3px solid var(--rmd-color-fg);
+  background: transparent;
+  color: var(--rmd-color-fg);
+  font-style: normal;
+  font-size: 16px;
+}
+
+.rmd-document hr {
+  height: 1px;
+  background: var(--rmd-color-line);
+  margin: 2em 0;
+}
+
+/* Card-like blocks — flat, soft border, very subtle shadow on hover */
+.rmd-grid-cell,
+.rmd-callout,
+.rmd-export,
+.rmd-slider,
+.rmd-diff,
+.rmd-flow,
+.rmd-tabs {
+  background: var(--rmd-color-surface);
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  box-shadow: none;
+}
+
+.rmd-grid-cell {
+  background: var(--rmd-color-surface-strong);
+}
+
+/* Notion-style callout: gray bg, color icon stripe via left border */
+.rmd-callout {
+  background: var(--rmd-color-surface-strong);
+  border: 1px solid var(--rmd-color-line);
+  border-left-width: 3px;
+  border-radius: var(--rmd-radius-md);
+}
+
+.rmd-callout::before {
+  width: 3px;
+}
+
+.rmd-callout-tip,
+.rmd-callout-success { color: var(--rmd-color-success); border-left-color: var(--rmd-color-success); }
+.rmd-callout-warning { color: var(--rmd-color-warning); border-left-color: var(--rmd-color-warning); }
+.rmd-callout-danger  { color: var(--rmd-color-danger);  border-left-color: var(--rmd-color-danger); }
+.rmd-callout-info    { color: var(--rmd-color-info);    border-left-color: var(--rmd-color-info); }
+
+.rmd-callout-title,
+.rmd-block-title {
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-ui);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.005em;
+}
+
+.rmd-callout-body { color: var(--rmd-color-fg); }
+
+/* Chart — flat fills, soft rounded bars feeling */
+.rmd-chart {
+  background: var(--rmd-color-surface);
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  box-shadow: none;
+}
+
+.rmd-chart rect {
+  fill: var(--rmd-color-primary);
+  filter: none;
+  rx: 3;
+  ry: 3;
+}
+
+.rmd-chart-point:nth-of-type(2n) rect {
+  fill: var(--rmd-color-accent);
+}
+
+.rmd-chart-point:hover rect {
+  fill: var(--rmd-color-primary-strong);
+  transform: none;
+}
+
+.rmd-chart text {
+  fill: var(--rmd-color-muted);
+  font-family: var(--rmd-font-ui);
+  font-size: 12px;
+}
+
+/* Slider — minimal */
+.rmd-slider label { color: var(--rmd-color-fg); font-family: var(--rmd-font-ui); }
+
+.rmd-slider output {
+  background: var(--rmd-color-surface-strong);
+  border: 1px solid var(--rmd-color-line);
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-mono);
+  border-radius: 4px;
+}
+
+.rmd-slider input[type="range"] {
+  accent-color: var(--rmd-color-primary);
+}
+
+/* Buttons — pill style for tabs, blue primary for export */
+.rmd-export button,
+.rmd-tabs [role="tab"] {
+  background: var(--rmd-color-surface);
+  border: 1px solid var(--rmd-color-line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-ui);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.rmd-export button:hover,
+.rmd-tabs [role="tab"]:hover {
+  background: var(--rmd-color-surface-strong);
+  border-color: var(--rmd-color-line-strong);
+  color: var(--rmd-color-fg);
+  transform: none;
+}
+
+.rmd-export button {
+  background: var(--rmd-color-primary);
+  border-color: var(--rmd-color-primary);
+  color: #ffffff;
+  border-radius: 6px;
+}
+
+.rmd-export button:hover {
+  background: var(--rmd-color-primary-strong);
+  border-color: var(--rmd-color-primary-strong);
+  color: #ffffff;
+}
+
+.rmd-tabs [role="tab"][aria-selected="true"] {
+  background: var(--rmd-color-fg);
+  border-color: var(--rmd-color-fg);
+  color: var(--rmd-color-page);
+}
+
+/* Code & pre — Notion uses monochrome dark on near-white */
+.rmd-code,
+.rmd-export pre,
+.rmd-diff pre {
+  background: #f7f6f3;
+  border: 1px solid var(--rmd-color-line);
+  color: #37352f;
+  border-radius: var(--rmd-radius-sm);
+}
+
+.rmd-export pre,
+.rmd-diff pre {
+  background: #2f2f2f;
+  color: #e8e8e8;
+  border-color: #2f2f2f;
+}
+
+.rmd-code code,
+.rmd-export pre code,
+.rmd-diff code {
+  color: inherit;
+}
+
+/* Flow — soft chips */
+.rmd-flow li {
+  background: var(--rmd-color-surface-strong);
+  border: 1px solid var(--rmd-color-line);
+  color: var(--rmd-color-fg);
+  border-radius: var(--rmd-radius-md);
+}
+
+.rmd-flow li span:nth-child(2) {
+  color: var(--rmd-color-primary);
+  font-weight: 700;
+}
+
+/* Diff */
+.rmd-diff-add code    { color: #6dd9ad; }
+.rmd-diff-remove code { color: #ff8b80; }
+
+.rmd-diff-line mark {
+  background: var(--rmd-color-warning);
+  color: #fff;
+  border-radius: 999px;
+}
+
+/* Timeline — Notion style: small dot, neutral rail */
+.rmd-timeline-vertical ol::before,
+.rmd-timeline-horizontal ol::before {
+  background: var(--rmd-color-line);
+}
+
+.rmd-timeline-vertical .rmd-timeline-item::before,
+.rmd-timeline-horizontal .rmd-timeline-item::before {
+  background: var(--rmd-color-page);
+  border-color: var(--rmd-color-line-strong);
+  box-shadow: none;
+}
+
+.rmd-timeline-time {
+  color: var(--rmd-color-muted);
+  font-family: var(--rmd-font-ui);
+}
+
+.rmd-timeline-content h4 {
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-ui);
+}
+
+/* Kanban — soft column tint, card with hover lift */
+.rmd-kanban-column {
+  background: var(--rmd-color-surface-strong);
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+}
+
+.rmd-kanban-column h3 {
+  color: var(--rmd-color-fg);
+  font-family: var(--rmd-font-ui);
+  font-weight: 600;
+}
+
+.rmd-kanban-cards > :not(ul):not(ol),
+.rmd-kanban-cards li {
+  background: var(--rmd-color-surface);
+  border: 1px solid var(--rmd-color-line);
+  color: var(--rmd-color-fg);
+  border-radius: var(--rmd-radius-sm);
+  box-shadow: none;
+}
+
+.rmd-kanban-cards > :not(ul):not(ol):hover,
+.rmd-kanban-cards li:hover {
+  border-color: var(--rmd-color-line-strong);
+  box-shadow: var(--rmd-shadow-sm);
+  transform: none;
+}
+
+/* Details — Notion toggle */
+.rmd-details {
+  background: var(--rmd-color-surface);
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+}
+
+.rmd-details[open] {
+  background: var(--rmd-color-surface);
+  box-shadow: none;
+}
+
+.rmd-details summary {
+  font-family: var(--rmd-font-ui);
+  font-weight: 600;
+}
+
+.rmd-details summary::before {
+  border-left-color: var(--rmd-color-muted);
+}
+
+.rmd-details[open] .rmd-details-body {
+  border-top-color: var(--rmd-color-line);
+}
+
+/* Carousel & embed — soft cards */
+.rmd-carousel {
+  background: var(--rmd-color-surface);
+  border: 1px solid var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  box-shadow: none;
+}
+
+.rmd-embed {
+  background: var(--rmd-color-surface-strong);
+  border-radius: var(--rmd-radius-md);
+  box-shadow: none;
+}
+
+/* Math — soft monospace */
+.rmd-math {
+  background: var(--rmd-color-surface-strong);
+  border: 1px solid var(--rmd-color-line);
+  color: var(--rmd-color-fg);
+  border-radius: var(--rmd-radius-md);
+  font-family: var(--rmd-font-mono);
+}
+</style>
+</head>
+<body data-rmd-theme="notion-like">
+<main class="rmd-document" data-rmd-version="0.1.0">
+<h1>Storage Tier Decision Report</h1>
+<p>We need to pick a storage strategy for the analytics pipeline that handles
+~3 TB/day. Three candidates evaluated against latency, cost, and operational
+complexity.</p>
+<h2>Candidates</h2>
+<section class="rmd-block rmd-grid" data-rmd-block="grid" data-columns="3" data-gap="md"><div class="rmd-grid-cell"><h3>Hot only</h3>
+<p>All data on NVMe SSD.
+<strong>Pros</strong>: lowest read latency (≈2 ms).
+<strong>Cons</strong>: $$$ per TB; capacity ceiling reached in ~6 months.</p></div><div class="rmd-grid-cell"><h3>Tiered (hot + cold)</h3>
+<p>Recent 7 days on SSD, older on object storage.
+<strong>Pros</strong>: 70% cost reduction, latency unchanged for typical queries.
+<strong>Cons</strong>: needs lifecycle automation; cold-restore latency 30-60 s.</p></div><div class="rmd-grid-cell"><h3>Cold only</h3>
+<p>Everything on object storage with index cache.
+<strong>Pros</strong>: cheapest; effectively unlimited.
+<strong>Cons</strong>: P95 read latency 1.5 s, breaks the SLA for live dashboards.</p></div></section>
+<h2>Cost vs Latency</h2>
+<section class="rmd-block rmd-chart rmd-chart-bar" data-rmd-block="chart" data-y2="P95(ms)" data-legend="top"><h3 class="rmd-block-title">Monthly cost (k$) vs P95 read latency (ms)</h3><svg role="img" viewBox="0 0 240 190" class="rmd-chart-svg"><title>Monthly cost (k$) vs P95 read latency (ms)</title><desc>HotOnly: 48, 2; Tiered: 14, 2; ColdOnly: 3, 1500</desc><g class="rmd-chart-point" data-label="HotOnly" data-value="48"><rect x="24" y="146" width="36" height="4" rx="4"></rect><text x="42" y="170" text-anchor="middle">HotOnly</text><text x="42" y="138" text-anchor="middle">48</text></g><g class="rmd-chart-point" data-label="Tiered" data-value="14"><rect x="88" y="146" width="36" height="4" rx="4"></rect><text x="106" y="170" text-anchor="middle">Tiered</text><text x="106" y="138" text-anchor="middle">14</text></g><g class="rmd-chart-point" data-label="ColdOnly" data-value="3"><rect x="152" y="146" width="36" height="4" rx="4"></rect><text x="170" y="170" text-anchor="middle">ColdOnly</text><text x="170" y="138" text-anchor="middle">3</text></g></svg></section>
+<h2>Recommendation</h2>
+<aside class="rmd-block rmd-callout rmd-callout-tip" data-rmd-block="callout" data-kind="tip"><h3 class="rmd-callout-title">Pick Tiered</h3><div class="rmd-callout-body"><p>Tiered storage hits the SLA, costs roughly a third of hot-only, and the
+lifecycle automation is a one-time investment we already use for backups.</p></div></aside>
+<h2>Rollout Plan</h2>
+<section class="rmd-block rmd-flow" data-rmd-block="flow" data-direction="lr"><ol><li><span>Spec</span> <span aria-hidden="true">→</span> <span>Review</span></li><li><span>Review</span> <span aria-hidden="true">→</span> <span>Migrate cold path</span></li><li><span>Migrate cold path</span> <span aria-hidden="true">→</span> <span>Enable lifecycle</span></li><li><span>Enable lifecycle</span> <span aria-hidden="true">→</span> <span>Monitor</span></li><li><span>Migrate cold path</span> <span aria-hidden="true">→</span> <span>Issue</span></li><li><span>Issue</span> <span aria-hidden="true">→</span> <span>Pause and audit</span></li></ol></section>
+<h2>Risk Register</h2>
+<details class="rmd-block rmd-details" data-rmd-block="details"><summary>Operational risks and mitigations</summary><div class="rmd-details-body"><ol><li><p><strong>Cold restore stalls during peak query</strong>: cap concurrent restore jobs;
+surface a &quot;restoring&quot; badge in the UI so users don't retry.</p></li><li><p><strong>Lifecycle policy misfires and deletes hot data</strong>: dry-run mode for first
+7 days; alert on &gt;1% delta vs expected size.</p></li><li><p><strong>Object storage region outage</strong>: keep last 24h of cold data mirrored to a
+second region; documented failover runbook.</p></li></ol></div></details>
+</main>
+<script type="application/rmd">---
+title: "Storage Tier Decision Report"
+theme: default
+share: team
+description: "Comparison of hot/warm/cold storage strategies for the analytics pipeline."
+---
+
+# Storage Tier Decision Report
+
+We need to pick a storage strategy for the analytics pipeline that handles
+~3 TB/day. Three candidates evaluated against latency, cost, and operational
+complexity.
+
+## Candidates
+
+:::grid 3
+### Hot only
+All data on NVMe SSD.
+**Pros**: lowest read latency (≈2 ms).
+**Cons**: $$ per TB; capacity ceiling reached in ~6 months.
+---
+### Tiered (hot + cold)
+Recent 7 days on SSD, older on object storage.
+**Pros**: 70% cost reduction, latency unchanged for typical queries.
+**Cons**: needs lifecycle automation; cold-restore latency 30-60 s.
+---
+### Cold only
+Everything on object storage with index cache.
+**Pros**: cheapest; effectively unlimited.
+**Cons**: P95 read latency 1.5 s, breaks the SLA for live dashboards.
+:::
+
+## Cost vs Latency
+
+:::chart bar title="Monthly cost (k$) vs P95 read latency (ms)" y="cost(k$)" y2="P95(ms)" legend=top
+HotOnly      48 2
+Tiered       14 2
+ColdOnly     3  1500
+:::
+
+## Recommendation
+
+:::callout tip title="Pick Tiered"
+Tiered storage hits the SLA, costs roughly a third of hot-only, and the
+lifecycle automation is a one-time investment we already use for backups.
+:::
+
+## Rollout Plan
+
+:::flow direction=lr
+Spec -> Review -> Migrate cold path -> Enable lifecycle -> Monitor
+Migrate cold path -> Issue -> Pause and audit
+:::
+
+## Risk Register
+
+:::details title="Operational risks and mitigations"
+1. **Cold restore stalls during peak query**: cap concurrent restore jobs;
+   surface a "restoring" badge in the UI so users don't retry.
+2. **Lifecycle policy misfires and deletes hot data**: dry-run mode for first
+   7 days; alert on >1% delta vs expected size.
+3. **Object storage region outage**: keep last 24h of cold data mirrored to a
+   second region; documented failover runbook.
+:::
+</script>
+<script data-rmd-runtime-inline>
+(() => {
+  const state = { sliders: {}, activeTabs: {} };
+
+  function snapToStep(value, min, step) {
+    if (!Number.isFinite(step) || step <= 0) return value;
+    return min + Math.round((value - min) / step) * step;
+  }
+
+  function setSliderValue(name, value, spec) {
+    const numeric = Number(value);
+    const clamped = Math.min(Math.max(numeric, spec.min), spec.max);
+    const stepped = Number(snapToStep(clamped, spec.min, spec.step).toFixed(12));
+    state.sliders[name] = stepped;
+    return stepped;
+  }
+
+  function formatValue(value, formatter) {
+    if (formatter === "int") return String(Math.round(Number(value)));
+    return String(value);
+  }
+
+  function renderTemplate(template) {
+    return String(template).replace(/{{\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*\|\s*([a-zA-Z_][a-zA-Z0-9_]*))?\s*}}/g, (_match, name, formatter) => {
+      if (state.sliders[name] === undefined) return "[未定义:" + name + "]";
+      return formatValue(state.sliders[name], formatter);
+    });
+  }
+
+  function dispatchStateChange(root) {
+    root.dispatchEvent(new CustomEvent("rmd:statechange", {
+      bubbles: true,
+      detail: { state }
+    }));
+  }
+
+  async function writeClipboard(content) {
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) return false;
+      await navigator.clipboard.writeText(content);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function showManualCopy(block, content) {
+    let textarea = block.querySelector("textarea[data-rmd-manual-copy]");
+    if (!textarea) {
+      textarea = document.createElement("textarea");
+      textarea.setAttribute("data-rmd-manual-copy", "true");
+      textarea.setAttribute("aria-label", "Manual copy fallback");
+      block.append(textarea);
+    }
+    textarea.value = content;
+    textarea.focus();
+    textarea.select();
+  }
+
+  function bindSliders(root) {
+    root.querySelectorAll('[data-rmd-block="slider"]').forEach((slider) => {
+      const name = slider.getAttribute("data-name");
+      const input = slider.querySelector('input[type="range"]');
+      const output = slider.querySelector("output");
+      if (!name || !input || state.sliders[name] !== undefined) return;
+
+      const unit = slider.getAttribute("data-unit") || "";
+      const spec = {
+        min: Number(input.min),
+        max: Number(input.max),
+        step: Number(input.step || 1)
+      };
+      state.sliders[name] = Number(input.value);
+
+      input.addEventListener("input", () => {
+        const value = setSliderValue(name, input.value, spec);
+        if (output) output.textContent = unit ? String(value) + " " + unit : String(value);
+        dispatchStateChange(root);
+      });
+    });
+  }
+
+  function bindExports(root) {
+    root.querySelectorAll('[data-rmd-block="export"]').forEach((block) => {
+      const button = block.querySelector("button");
+      const code = block.querySelector("pre code");
+      if (!button || !code) return;
+
+      button.addEventListener("click", async () => {
+        const content = renderTemplate(code.textContent || "");
+        const ok = await writeClipboard(content);
+        block.setAttribute("data-rmd-copied", ok ? "true" : "false");
+        if (!ok) showManualCopy(block, content);
+      });
+    });
+  }
+
+  function bindTabs(root) {
+    root.querySelectorAll('[data-rmd-block="tabs"]').forEach((tabs) => {
+      const key = tabs.getAttribute("data-rmd-id") || tabs.getAttribute("data-default") || "tabs";
+      state.activeTabs[key] = tabs.getAttribute("data-default") || "";
+
+      tabs.querySelectorAll('[role="tab"]').forEach((button) => {
+        button.addEventListener("click", () => {
+          const label = button.getAttribute("data-label");
+          if (!label) return;
+          state.activeTabs[key] = label;
+
+          tabs.querySelectorAll('[role="tab"]').forEach((candidate) => {
+            candidate.setAttribute("aria-selected", String(candidate.getAttribute("data-label") === label));
+          });
+          tabs.querySelectorAll('[role="tabpanel"]').forEach((panel) => {
+            panel.hidden = panel.getAttribute("data-label") !== label;
+          });
+          dispatchStateChange(root);
+        });
+      });
+    });
+  }
+
+  function init() {
+    const root = document.querySelector(".rmd-document") || document.body;
+    bindSliders(root);
+    bindExports(root);
+    bindTabs(root);
+    window.RMD_STATE = state;
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>

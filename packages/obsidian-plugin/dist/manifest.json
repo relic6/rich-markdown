@@ -1,0 +1,10 @@
+{
+  "id": "rich-markdown",
+  "name": "Rich Markdown",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "Render and edit Rich Markdown (.rmd) inside Obsidian with split preview, themes, and HTML export.",
+  "author": "Rich Markdown Project",
+  "authorUrl": "https://github.com/rich-markdown/rich-markdown",
+  "isDesktopOnly": false
+}

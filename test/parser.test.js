@@ -84,6 +84,38 @@ test("parses CommonMark block structures through markdown-it", () => {
   assert.equal(ast.children[4].type, "html-block");
 });
 
+test("does not parse RMD fences inside Markdown code blocks", () => {
+  const ast = parse(`\`\`\`rmd
+:::callout info title="Example"
+This should stay source.
+:::
+\`\`\`
+
+:::tabs default="RMD源码"
+@ RMD源码
+\`\`\`rmd
+:::callout info title="Hello"
+Nested source should stay code.
+:::
+\`\`\`
+
+@ 渲染目标
+Panel text.
+:::
+`);
+
+  assert.equal(ast.children[0].type, "code-block");
+  assert.equal(ast.children[0].lang, "rmd");
+  assert.match(ast.children[0].value, /:::callout info/);
+
+  const tabs = ast.children[1];
+  assert.equal(tabs.type, "tabs");
+  assert.equal(tabs.default, "RMD源码");
+  assert.equal(tabs.panels.length, 2);
+  assert.equal(tabs.panels[0].children[0].type, "code-block");
+  assert.match(tabs.panels[0].children[0].value, /Nested source should stay code/);
+});
+
 test("unknown blocks degrade to code-block nodes", () => {
   const ast = parse(":::unknown\nhello\n:::");
 

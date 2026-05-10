@@ -10,16 +10,34 @@ import { validate } from "../../validator/src/index.js";
 import { createPreviewServer } from "./preview-server.js";
 
 const USAGE = `
+Rich Markdown (rmd) CLI v0.2.0
+
 Usage:
-  rmd parse <file>
-  rmd validate <file>
-  rmd build <file> [--mode self-contained|cdn|split] [--theme <name>] [--version <semver>] [--out <file>]
-  rmd open <file> [--port <number>] [--host <host>] [--mode self-contained|cdn|split] [--no-open true]
+  rmd <command> [options]
+
+Commands:
+  parse <file>       Parse an .rmd file and output the AST as JSON
+  validate <file>    Validate an .rmd file against the schema
+  build <file>       Compile an .rmd file into HTML
+  open <file>        Start a local dev server and preview the .rmd file
+
+Options for 'build' and 'open':
+  --mode <mode>      'self-contained' (default), 'cdn', or 'split'
+  --theme <name>     Theme to use (default: 'default')
+  --version <semver> Specify a version for the output
+  --out <file>       (build only) Output file path
+  --port <number>    (open only) Port to listen on (default: random)
+  --host <host>      (open only) Host to listen on (default: 127.0.0.1)
+  --no-open true     (open only) Do not automatically open the browser
+
+Global Options:
+  --help, -h         Show this help message
+  --version, -v      Show the current CLI version
 
 Examples:
-  rmd parse examples/rate-limit-decision.rmd
-  rmd build examples/rate-limit-decision.rmd --mode self-contained --out dist/demo.html
-  rmd open examples/rate-limit-decision.rmd --port 3000 --no-open true
+  rmd parse examples/v0.2-showcase.rmd
+  rmd build examples/china-pet-market-analysis.rmd --mode self-contained --out dist/demo.html
+  rmd open examples/v0.2-showcase.rmd --port 3000
 `.trim();
 
 export async function main(argv = process.argv.slice(2), io = defaultIo()) {
@@ -42,6 +60,11 @@ export async function main(argv = process.argv.slice(2), io = defaultIo()) {
 
     if (command === "open") {
       await runOpen(rest, io);
+      return 0;
+    }
+
+    if (command === "--version" || command === "-v") {
+      io.stdout(`rmd-cli v0.2.0\n`);
       return 0;
     }
 
@@ -244,7 +267,17 @@ function openBrowser(url) {
   child.unref();
 }
 
-const isEntrypoint = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+import { realpathSync } from "node:fs";
+
+let isEntrypoint = false;
+if (process.argv[1]) {
+  try {
+    isEntrypoint = realpathSync(process.argv[1]) === fileURLToPath(import.meta.url);
+  } catch (e) {
+    isEntrypoint = resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+  }
+}
+
 if (isEntrypoint) {
   const code = await main();
   process.exitCode = code;

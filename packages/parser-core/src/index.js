@@ -23,6 +23,7 @@ function parseBlocks(source, context) {
   const lines = normalizeNewlines(source).split("\n");
   const nodes = [];
   let markdownLines = [];
+  let markdownFence = null;
 
   const flushMarkdown = () => {
     if (markdownLines.length === 0) {
@@ -35,6 +36,21 @@ function parseBlocks(source, context) {
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
+    const fence = matchMarkdownFence(line);
+
+    if (markdownFence) {
+      markdownLines.push(line);
+      if (fence && fence.marker === markdownFence.marker && fence.length >= markdownFence.length) {
+        markdownFence = null;
+      }
+      continue;
+    }
+
+    if (fence) {
+      markdownFence = fence;
+      markdownLines.push(line);
+      continue;
+    }
 
     const blockStart = line.match(/^:::\s*([a-z][a-z0-9-]*)(?:\s+(.*))?\s*$/i);
     if (blockStart) {
@@ -250,8 +266,25 @@ function collectBlock(lines, startIndex, blockStart) {
   const contentLines = [];
   let endIndex = lines.length - 1;
   let closed = false;
+  let markdownFence = null;
 
   for (let index = startIndex + 1; index < lines.length; index += 1) {
+    const fence = matchMarkdownFence(lines[index]);
+
+    if (markdownFence) {
+      contentLines.push(lines[index]);
+      if (fence && fence.marker === markdownFence.marker && fence.length >= markdownFence.length) {
+        markdownFence = null;
+      }
+      continue;
+    }
+
+    if (fence) {
+      markdownFence = fence;
+      contentLines.push(lines[index]);
+      continue;
+    }
+
     if (/^:::\s*$/.test(lines[index])) {
       endIndex = index;
       closed = true;
@@ -277,6 +310,18 @@ function collectBlock(lines, startIndex, blockStart) {
   }
 
   return block;
+}
+
+function matchMarkdownFence(line) {
+  const match = line.match(/^\s*(`{3,}|~{3,})/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    marker: match[1][0],
+    length: match[1].length
+  };
 }
 
 function registerSliderName(node, context) {

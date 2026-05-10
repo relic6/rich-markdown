@@ -10,6 +10,9 @@
     "build:dist": "node scripts/build-dist.js",
     "test": "node --test",
     "conformance": "node spec/conformance/runner.js",
+    "obsidian:build": "npm run build --workspace @rmd/obsidian-plugin",
+    "obsidian:test": "npm run test --workspace @rmd/obsidian-plugin",
+    "obsidian:typecheck": "npm run typecheck --workspace @rmd/obsidian-plugin",
     "rmd": "node packages/cli/src/index.js",
     "parse:example": "node examples/parse-example.js"
   },

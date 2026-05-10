@@ -402,7 +402,7 @@ function parseTabs(block, parseChildren) {
   let current = null;
 
   for (const line of block.content.split(/\r?\n/)) {
-    const label = line.match(/^@(.+?)\s*$/)?.[1];
+    const label = line.match(/^@(.+?)\s*$/)?.[1]?.trim();
 
     if (label) {
       current = { label, source: "" };

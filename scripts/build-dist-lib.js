@@ -20,6 +20,16 @@ export async function buildDist({ outdir = join(projectRoot, "dist"), themeNames
     logLevel: "silent"
   });
 
+  await build({
+    entryPoints: [join(projectRoot, "packages/cli/src/index.js")],
+    outfile: join(outdir, "cli.js"),
+    bundle: true,
+    platform: "node",
+    format: "esm",
+    target: ["node18"],
+    logLevel: "silent"
+  });
+
   for (const name of themeNames) {
     await writeFile(join(outdir, "themes", `${name}.css`), themes[name] ?? themes.default, "utf8");
   }

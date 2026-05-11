@@ -3,20 +3,11 @@
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "rmd": "./packages/cli/src/index.js"
+    "rmd": "./dist/cli.js"
   },
   "files": [
     "dist",
-    "packages/ast",
-    "packages/blocks-core",
-    "packages/cli",
-    "packages/parser-core",
-    "packages/renderer-core",
-    "packages/renderer",
-    "packages/runtime",
-    "packages/themes-default",
-    "packages/validator",
-    "scripts"
+    "README.md"
   ],
   "workspaces": [
     "packages/*"

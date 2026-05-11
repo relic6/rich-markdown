@@ -322,7 +322,7 @@ CLI 不是 v0.1 必须，但 ARCHITECTURE 必须为它留好接口——`rendere
 | `@rmd/renderer` | npm 包，多入口 | 浏览器/Node 引入；包含下文所有 dist 文件 | ✅ |
 | `@rmd/themes-default` | npm 包 | 默认 + 3 套官方主题 CSS | ✅ |
 | `@rmd/skill-claude-code` | git 仓库目录 | Claude Code skill 文件 | ✅ |
-| `rmd-cli` | npm 全局命令 | `rmd open` / `rmd build` / `rmd preview` | ⏳ v0.2 |
+| `rmd` | npm 命令 | `rmd init` / `rmd open` / `rmd build` / `rmd preview` | ⏳ v0.2 |
 | `@rmd/skill-codex` | git 仓库目录 | Codex 用 skill | ⏳ v0.2 |
 | `@rmd/skill-cherry-studio` | git 仓库目录 | Cherry Studio 用 skill | ⏳ v0.2 |
 | `vscode-rmd` | VSCode 插件 | 编辑预览、语法高亮 | ⏳ v0.2 |

@@ -207,16 +207,20 @@ QUICKSTART 阶段我们只用 6 种核心块就讲完了一个完整故事：
 
 ## 7. 想自己试一试？
 
-当前阶段渲染器还没发布。等到 v0.1 alpha：
+安装 CLI 后可以先把 Rich Markdown skill 写入当前项目，让 Codex 或 Claude Code 在这个目录下自动加载：
 
 ```bash
-# 安装（计划中）
-npm install -g rmd-cli
+# 本地安装
+npm install r-markdown
+
+# 安装当前项目的 AI skill
+npx rmd init --ai codex
+npx rmd init --ai claude
 
 # 把上面 §2.1 的源文件存成 demo.rmd
-rmd open demo.rmd          # 在默认浏览器打开渲染页
-rmd open demo.rmd --theme paper   # 用 paper 主题
-rmd build demo.rmd --out demo.html  # 输出自包含 HTML 用于分享
+npx rmd open demo.rmd          # 在默认浏览器打开渲染页
+npx rmd open demo.rmd --theme paper   # 用 paper 主题
+npx rmd build demo.rmd --out demo.html  # 输出自包含 HTML 用于分享
 ```
 
 在那之前，可以做的事：

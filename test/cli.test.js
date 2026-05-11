@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -41,6 +42,33 @@ test("CLI writes build output to --out", async () => {
     assert.equal(output.stdout.trim(), out);
     assert.match(html, /data-rmd-block="chart"/);
   } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("CLI init installs Codex and Claude skills", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "rmd-init-"));
+  const previousCwd = process.cwd();
+
+  try {
+    process.chdir(dir);
+    const output = await runCli(["init", "--ai", "codex,claude"]);
+
+    const codexRoot = join(dir, ".codex", "skills", "rich-markdown");
+    const claudeRoot = join(dir, ".claude", "skills", "rich-markdown");
+    const codexSkill = await readFile(join(codexRoot, "SKILL.md"), "utf8");
+    const claudeSkill = await readFile(join(claudeRoot, "SKILL.md"), "utf8");
+
+    assert.equal(output.code, 0);
+    assert.match(output.stdout, /Codex skill installed:/);
+    assert.match(output.stdout, /Claude Code skill installed:/);
+    assert.match(codexSkill, /name: rich-markdown/);
+    assert.match(claudeSkill, /name: rich-markdown/);
+    assert.equal(existsSync(join(codexRoot, "references", "blocks.md")), true);
+    assert.equal(existsSync(join(codexRoot, "agents", "openai.yaml")), true);
+    assert.equal(existsSync(join(claudeRoot, "examples", "decision-report.rmd")), true);
+  } finally {
+    process.chdir(previousCwd);
     await rm(dir, { recursive: true, force: true });
   }
 });

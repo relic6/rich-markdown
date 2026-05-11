@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { existsSync, realpathSync } from "node:fs";
+import { copyFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildDist } from "../../../scripts/build-dist-lib.js";
 import { parse } from "../../parser-core/src/index.js";
 import { buildHtml } from "../../renderer/src/index.js";
 import { validate } from "../../validator/src/index.js";
@@ -16,10 +16,15 @@ Usage:
   rmd <command> [options]
 
 Commands:
+  init              Install the Rich Markdown skill for an AI assistant
   parse <file>       Parse an .rmd file and output the AST as JSON
   validate <file>    Validate an .rmd file against the schema
   build <file>       Compile an .rmd file into HTML
   open <file>        Start a local dev server and preview the .rmd file
+
+Options for 'init':
+  --ai <ids>        Target AI assistant: codex, claude, or all
+  --force true      Overwrite existing skill files
 
 Options for 'build' and 'open':
   --mode <mode>      'self-contained' (default), 'cdn', or 'split'
@@ -35,15 +40,34 @@ Global Options:
   --version, -v      Show the current CLI version
 
 Examples:
+  rmd init --ai codex
+  rmd init --ai claude
   rmd parse examples/v0.2-showcase.rmd
   rmd build examples/china-pet-market-analysis.rmd --mode self-contained --out dist/demo.html
   rmd open examples/v0.2-showcase.rmd --port 3000
 `.trim();
 
+const SKILL_NAME = "rich-markdown";
+const PLATFORM_TARGETS = {
+  codex: {
+    displayName: "Codex",
+    root: ".codex"
+  },
+  claude: {
+    displayName: "Claude Code",
+    root: ".claude"
+  }
+};
+
 export async function main(argv = process.argv.slice(2), io = defaultIo()) {
   const [command, ...rest] = argv;
 
   try {
+    if (command === "init") {
+      await runInit(rest, io);
+      return 0;
+    }
+
     if (command === "parse") {
       await runParse(rest, io);
       return 0;
@@ -64,7 +88,7 @@ export async function main(argv = process.argv.slice(2), io = defaultIo()) {
     }
 
     if (command === "--version" || command === "-v") {
-      io.stdout(`rmd-cli v0.2.0\n`);
+      io.stdout(`rmd v0.2.0\n`);
       return 0;
     }
 
@@ -78,6 +102,124 @@ export async function main(argv = process.argv.slice(2), io = defaultIo()) {
   } catch (error) {
     io.stderr(`${error.message}\n`);
     return 1;
+  }
+}
+
+async function runInit(args, io) {
+  const flags = parseInitArgs(args);
+  rejectUnknownFlags(flags, ["ai", "force"]);
+
+  const platforms = resolveInitPlatforms(flags.ai);
+  const force = flags.force === "true" || flags.force === true;
+
+  for (const platform of platforms) {
+    await installSkillForPlatform(platform, { force }, io);
+  }
+}
+
+async function installSkillForPlatform(platform, options, io) {
+  const target = PLATFORM_TARGETS[platform];
+  if (!target) {
+    throw new Error(`Unsupported AI assistant: ${platform}`);
+  }
+
+  const sourceDir = resolveSkillSource(platform);
+  if (!sourceDir) {
+    throw new Error(`Missing bundled skill assets for ${platform}`);
+  }
+
+  const targetDir = resolve(process.cwd(), target.root, "skills", SKILL_NAME);
+  const existed = existsSync(targetDir);
+  await copyDirectory(sourceDir, targetDir, { force: options.force });
+
+  const action = existed && !options.force ? "repaired" : "installed";
+  io.stdout(`${target.displayName} skill ${action}: ${targetDir}\n`);
+}
+
+function resolveInitPlatforms(rawAi) {
+  if (!rawAi) {
+    const detected = detectPlatform();
+    if (detected) return [detected];
+    throw new Error("init requires --ai <codex|claude|all>");
+  }
+
+  const values = String(rawAi)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const platforms = values.includes("all") ? Object.keys(PLATFORM_TARGETS) : values;
+  for (const platform of platforms) {
+    if (!PLATFORM_TARGETS[platform]) {
+      throw new Error(`Unsupported AI assistant: ${platform}`);
+    }
+  }
+
+  return [...new Set(platforms)];
+}
+
+function detectPlatform() {
+  if (existsSync(resolve(process.cwd(), ".codex"))) return "codex";
+  if (existsSync(resolve(process.cwd(), ".claude"))) return "claude";
+  return null;
+}
+
+function parseInitArgs(args) {
+  const flags = {};
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (!arg.startsWith("--")) {
+      throw new Error(`Unexpected argument: ${arg}`);
+    }
+
+    const key = arg.slice(2);
+    const value = args[index + 1];
+    if (value === undefined || value.startsWith("--")) {
+      flags[key] = true;
+      continue;
+    }
+
+    flags[key] = value;
+    index += 1;
+  }
+
+  return flags;
+}
+
+function resolveSkillSource(platform) {
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    resolve(__dirname, "../assets/skills", platform),
+    resolve(__dirname, "../../../skills", platform)
+  ];
+
+  return candidates.find((candidate) => existsSync(candidate));
+}
+
+async function copyDirectory(sourceDir, targetDir, options) {
+  await mkdir(targetDir, { recursive: true });
+  const entries = await readdir(sourceDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    if (entry.name === ".DS_Store") {
+      continue;
+    }
+
+    const source = join(sourceDir, entry.name);
+    const target = join(targetDir, entry.name);
+
+    if (entry.isDirectory()) {
+      await copyDirectory(source, target, options);
+      continue;
+    }
+
+    if (!options.force && existsSync(target)) {
+      continue;
+    }
+
+    await mkdir(dirname(target), { recursive: true });
+    await copyFile(source, target);
   }
 }
 
@@ -231,6 +373,7 @@ function defaultIo() {
 }
 
 async function writeSplitAssets(outPath, theme) {
+  const { buildDist } = await import("../../../scripts/build-dist-lib.js");
   const outDir = dirname(outPath);
   await buildDist({ outdir: outDir, themeNames: [theme] });
 }
@@ -266,8 +409,6 @@ function openBrowser(url) {
   });
   child.unref();
 }
-
-import { realpathSync } from "node:fs";
 
 let isEntrypoint = false;
 if (process.argv[1]) {

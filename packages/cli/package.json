@@ -2,6 +2,10 @@
   "name": "rmd-cli",
   "version": "0.1.0",
   "type": "module",
+  "files": [
+    "assets",
+    "src"
+  ],
   "bin": {
     "rmd": "./src/index.js"
   },

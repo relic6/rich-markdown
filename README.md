@@ -1,4 +1,4 @@
-# r-markdown
+# r-markdown-cli
 
 Rich Markdown (`rmd`) is a toolchain and core engine for parsing, validating, previewing, and building `.rmd` files. It provides a standard way to process rich text content, featuring a local preview server and multiple built-in themes.
 
@@ -7,7 +7,7 @@ Rich Markdown (`rmd`) is a toolchain and core engine for parsing, validating, pr
 We recommend installing the CLI tool globally via npm:
 
 ```bash
-npm install -g r-markdown
+npm install -g r-markdown-cli
 ```
 
 ## Usage
@@ -55,13 +55,6 @@ To see all available commands and flags:
 ```bash
 rmd --help
 ```
-
-## Documentation
-
-For deep dives into architecture, data assets, and detailed API references, please check our documentation system:
-
-- 📚 [Rich Markdown Documentation Roadmap](./docs/README.md)
-- 🚀 [Quickstart Guide](./docs/QUICKSTART.md)
 
 ## License
 

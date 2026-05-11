@@ -11,4 +11,6 @@ export interface RmdSettings {
 export interface RenderHostOptions {
   themeCss: string;
   themeId: Exclude<ThemeChoice, "auto">;
+  resourceSourcePath?: string;
+  resolveResourceUrl?: (url: string) => string | null | undefined;
 }

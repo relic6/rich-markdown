@@ -2,15 +2,15 @@ import type { MarkdownPostProcessorContext } from "obsidian";
 import type { RenderHostOptions } from "./types";
 import { createRmdHost } from "./view-renderer";
 
-export function createPostProcessor(getOptions: () => RenderHostOptions, isEnabled: () => boolean) {
-  return (el: HTMLElement, _ctx: MarkdownPostProcessorContext) => {
+export function createPostProcessor(getOptions: (sourcePath?: string) => RenderHostOptions, isEnabled: () => boolean) {
+  return (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
     if (!isEnabled()) {
       return;
     }
 
     for (const code of findRmdCodeBlocks(el)) {
       const source = code.textContent ?? "";
-      const host = createRmdHost(source, getOptions());
+      const host = createRmdHost(source, getOptions(ctx.sourcePath));
       host.classList.add("rmd-post-processor-host");
       code.parentElement?.replaceWith(host);
     }

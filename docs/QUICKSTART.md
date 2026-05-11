@@ -211,7 +211,7 @@ QUICKSTART 阶段我们只用 6 种核心块就讲完了一个完整故事：
 
 ```bash
 # 本地安装
-npm install r-markdown
+npm install r-markdown-cli
 
 # 安装当前项目的 AI skill
 npx rmd init --ai codex

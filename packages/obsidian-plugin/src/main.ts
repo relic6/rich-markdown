@@ -5,6 +5,7 @@ import { createPostProcessor } from "./post-processor";
 import { RmdSettingTab, DEFAULT_SETTINGS } from "./settings";
 import { getThemeRenderOptions } from "./theme-bridge";
 import { nextThemeId } from "./theme-bridge-core.js";
+import { resolveObsidianResourceUrl } from "./resource-paths.js";
 import type { RenderHostOptions, RmdDisplayMode, RmdSettings, ThemeChoice } from "./types";
 import { RmdView, RMD_VIEW_TYPE } from "./view-rmd";
 
@@ -35,13 +36,13 @@ export default class RichMarkdownPlugin extends Plugin {
 
     this.registerMarkdownPostProcessor(
       createPostProcessor(
-        () => this.getRenderOptions(),
+        (sourcePath) => this.getRenderOptions(sourcePath),
         () => this.settings.enableInMarkdown
       )
     );
     this.registerEditorExtension(
       rmdLiveExtension(
-        () => this.getRenderOptions(),
+        () => this.getRenderOptions(this.app.workspace.getActiveFile()?.path),
         () => this.settings.enableInMarkdown
       )
     );
@@ -67,8 +68,12 @@ export default class RichMarkdownPlugin extends Plugin {
     });
   }
 
-  getRenderOptions(): RenderHostOptions {
-    return getThemeRenderOptions(this.settings.theme);
+  getRenderOptions(sourcePath?: string): RenderHostOptions {
+    return {
+      ...getThemeRenderOptions(this.settings.theme),
+      resourceSourcePath: sourcePath,
+      resolveResourceUrl: (url) => resolveObsidianResourceUrl(this.app.vault, sourcePath, url)
+    };
   }
 
   private registerCommands() {

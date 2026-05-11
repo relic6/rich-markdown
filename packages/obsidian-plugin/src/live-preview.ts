@@ -47,7 +47,8 @@ class RmdBlockWidget extends WidgetType {
       && other.range.source === this.range.source
       && other.range.blockKind === this.range.blockKind
       && other.options.themeCss === this.options.themeCss
-      && other.options.themeId === this.options.themeId;
+      && other.options.themeId === this.options.themeId
+      && other.options.resourceSourcePath === this.options.resourceSourcePath;
   }
 
   ignoreEvent() {

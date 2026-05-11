@@ -112,7 +112,7 @@ export class RmdView extends TextFileView {
     if (this.displayMode === "preview") {
       const preview = root.createDiv({ cls: "rmd-pane rmd-pane-preview" });
       this.previewPane = preview;
-      this.renderHost = createRmdHost(this.sourceData, this.plugin.getRenderOptions());
+      this.renderHost = createRmdHost(this.sourceData, this.getRenderOptions());
       preview.appendChild(this.renderHost);
       return;
     }
@@ -122,7 +122,7 @@ export class RmdView extends TextFileView {
       const previewPane = root.createDiv({ cls: "rmd-pane rmd-pane-preview" });
       this.previewPane = previewPane;
       this.editor = this.createSourceEditor(sourcePane);
-      this.renderHost = createRmdHost(this.sourceData, this.plugin.getRenderOptions());
+      this.renderHost = createRmdHost(this.sourceData, this.getRenderOptions());
       previewPane.appendChild(this.renderHost);
       this.annotatePreview();
       this.bindPreviewClick();
@@ -133,7 +133,7 @@ export class RmdView extends TextFileView {
     const sourcePane = root.createDiv({ cls: "rmd-pane rmd-pane-source rmd-live-editor" });
     this.editor = this.createSourceEditor(sourcePane, [
       rmdLiveExtension(
-        () => this.plugin.getRenderOptions(),
+        () => this.getRenderOptions(),
         () => true,
         "document"
       )
@@ -238,8 +238,12 @@ export class RmdView extends TextFileView {
       return;
     }
 
-    updateRmdHost(this.renderHost, this.sourceData, this.plugin.getRenderOptions());
+    updateRmdHost(this.renderHost, this.sourceData, this.getRenderOptions());
     this.annotatePreview();
+  }
+
+  private getRenderOptions() {
+    return this.plugin.getRenderOptions(this.file?.path);
   }
 
   private annotatePreview() {

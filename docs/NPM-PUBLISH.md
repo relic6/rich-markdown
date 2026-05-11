@@ -1,6 +1,6 @@
-# Publishing `r-markdown` to npm
+# Publishing `r-markdown-cli` to npm
 
-This guide explains how to publish the public npm package `r-markdown`.
+This guide explains how to publish the public npm package `r-markdown-cli`.
 The installed command remains `rmd`.
 
 Official references:
@@ -14,9 +14,9 @@ The package is published as:
 
 ```json
 {
-  "name": "r-markdown",
+  "name": "r-markdown-cli",
   "bin": {
-    "rmd": "./packages/cli/src/index.js"
+    "rmd": "dist/cli.js"
   }
 }
 ```
@@ -24,7 +24,7 @@ The package is published as:
 Users install the package with:
 
 ```bash
-npm install r-markdown
+npm install r-markdown-cli
 ```
 
 They run the CLI with:
@@ -63,10 +63,10 @@ npm config set registry https://registry.npmjs.org/
 
 ## Confirm the Package Name
 
-Before first publish, confirm that `r-markdown` is still unclaimed:
+Before first publish, confirm that `r-markdown-cli` is still unclaimed:
 
 ```bash
-npm view r-markdown name version
+npm view r-markdown-cli name version
 ```
 
 Expected result for an unclaimed package is an npm `E404 Not Found` response.
@@ -91,15 +91,11 @@ npm pack --dry-run
 The package should include at least:
 
 - `package.json`
-- `packages/cli/src/index.js`
-- `packages/cli/assets/skills/codex/SKILL.md`
-- `packages/cli/assets/skills/claude/SKILL.md`
-- `packages/parser-core/`
-- `packages/renderer/`
-- `packages/runtime/`
-- `packages/themes-default/`
-- `packages/validator/`
-- `dist/`
+- `README.md`
+- `LICENSE`
+- `dist/cli.js`
+- `dist/rmd.min.js`
+- `dist/themes/`
 
 ## Local Install Simulation
 
@@ -141,7 +137,7 @@ If npm asks for a one-time password:
 npm publish --otp 123456
 ```
 
-Do not reuse a version number. Once `r-markdown@x.y.z` is published, that exact
+Do not reuse a version number. Once `r-markdown-cli@x.y.z` is published, that exact
 version cannot be published again.
 
 ## Verify After Publish
@@ -149,14 +145,14 @@ version cannot be published again.
 Check the published metadata:
 
 ```bash
-npm view r-markdown name version bin
+npm view r-markdown-cli name version bin
 ```
 
 Install from npm in a clean project:
 
 ```bash
 tmp_project=$(mktemp -d)
-npm install --prefix "$tmp_project" r-markdown
+npm install --prefix "$tmp_project" r-markdown-cli
 cd "$tmp_project"
 npx rmd --version
 npx rmd init --ai codex
@@ -203,7 +199,7 @@ npm version patch --no-git-tag-version
 If `npm publish` says the package already exists, check:
 
 ```bash
-npm view r-markdown name version maintainers
+npm view r-markdown-cli name version maintainers
 ```
 
 If `npm publish` says the version already exists, bump the version:
@@ -215,7 +211,7 @@ npm version patch
 If `npx rmd` is not found after install, inspect the package `bin` metadata:
 
 ```bash
-npm view r-markdown bin
+npm view r-markdown-cli bin
 ```
 
 If skill files are missing after `rmd init`, inspect the tarball:

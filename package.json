@@ -1,12 +1,13 @@
 {
-  "name": "r-markdown",
-  "version": "0.1.0",
+  "name": "r-markdown-cli",
+  "version": "0.1.1",
   "type": "module",
   "bin": {
-    "rmd": "./dist/cli.js"
+    "rmd": "dist/cli.js"
   },
   "files": [
     "dist",
+    "skills",
     "README.md"
   ],
   "workspaces": [

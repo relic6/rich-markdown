@@ -45,6 +45,7 @@ export function updateRmdHost(host: HTMLElement, source: string, options: Render
       "</main>"
     ].join("\n");
 
+    rewriteImageSources(shadow, options.resolveResourceUrl);
     hydrate(shadow);
     host.removeAttribute("data-rmd-error");
   } catch (error) {
@@ -64,6 +65,24 @@ export function renderRmdFragment(source: string, options: RenderHostOptions): s
     renderFragmentToString(ast),
     "</main>"
   ].join("\n");
+}
+
+function rewriteImageSources(root: ParentNode, resolveResourceUrl: RenderHostOptions["resolveResourceUrl"]) {
+  if (!resolveResourceUrl) {
+    return;
+  }
+
+  for (const image of Array.from(root.querySelectorAll("img[src]"))) {
+    const originalSrc = image.getAttribute("src");
+    if (!originalSrc) {
+      continue;
+    }
+
+    const resolvedSrc = resolveResourceUrl(originalSrc);
+    if (resolvedSrc) {
+      image.setAttribute("src", resolvedSrc);
+    }
+  }
 }
 
 const errorCss = `

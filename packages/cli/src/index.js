@@ -10,7 +10,7 @@ import { validate } from "../../validator/src/index.js";
 import { createPreviewServer } from "./preview-server.js";
 
 const USAGE = `
-Rich Markdown (rmd) CLI v0.2.0
+Rich Markdown (rmd) CLI v0.1.1
 
 Usage:
   rmd <command> [options]
@@ -88,7 +88,7 @@ export async function main(argv = process.argv.slice(2), io = defaultIo()) {
     }
 
     if (command === "--version" || command === "-v") {
-      io.stdout(`rmd v0.2.0\n`);
+      io.stdout(`rmd v0.1.1\n`);
       return 0;
     }
 
@@ -190,8 +190,9 @@ function parseInitArgs(args) {
 function resolveSkillSource(platform) {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const candidates = [
-    resolve(__dirname, "../assets/skills", platform),
-    resolve(__dirname, "../../../skills", platform)
+    resolve(__dirname, "../skills", platform),
+    resolve(__dirname, "../../../skills", platform),
+    resolve(__dirname, "../assets/skills", platform)
   ];
 
   return candidates.find((candidate) => existsSync(candidate));

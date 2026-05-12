@@ -1,6 +1,6 @@
 {
   "name": "r-markdown-cli",
-  "version": "0.1.4",
+  "version": "0.1.7",
   "type": "module",
   "bin": {
     "rmd": "dist/cli.js"
@@ -22,7 +22,8 @@
     "obsidian:test": "npm run test --workspace @rmd/obsidian-plugin",
     "obsidian:typecheck": "npm run typecheck --workspace @rmd/obsidian-plugin",
     "rmd": "node packages/cli/src/index.js",
-    "parse:example": "node examples/parse-example.js"
+    "parse:example": "node examples/parse-example.js",
+    "release": "node scripts/publish.js"
   },
   "dependencies": {
     "esbuild": "^0.28.0",

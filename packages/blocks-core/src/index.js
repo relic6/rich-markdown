@@ -441,27 +441,28 @@ function parseTimeline(block, parseChildren) {
   const { attrs } = parseAttrs(block.attrText);
   const unknownAttrs = pickUnknownAttrs(attrs, ["direction"]);
   const items = [];
+  const warnings = [];
   let current = null;
+  let hasOrphanContent = false;
 
   for (const line of block.content.split(/\r?\n/)) {
-    const match = line.match(/^@\s+(.*?)(?:\s+\[(.*?)\])?\s*$/);
-    
+    // Lenient leading whitespace so that AI-generated or copy-pasted timelines
+    // with indented `@` headers still split into items correctly. Requires
+    // at least one space after `@` to avoid accidentally swallowing content
+    // lines that mention an `@handle`.
+    const match = line.match(/^\s*@\s+(.+?)\s*$/);
+
     if (match) {
       if (current) {
         items.push(current);
       }
-      
-      const time = match[1];
-      const attrStr = match[2] ? `[${match[2]}]` : "";
-      
-      const itemAttrs = {};
-      let titleMatch = attrStr.match(/title="([^"]*)"/);
-      let statusMatch = attrStr.match(/status="([^"]*)"/);
-      
+
+      const { time, title, status } = parseTimelineHeader(match[1]);
+
       current = {
         time,
-        title: titleMatch ? titleMatch[1] : null,
-        status: ["success", "warning", "danger", "pending"].includes(statusMatch?.[1]) ? statusMatch[1] : "default",
+        title,
+        status,
         source: ""
       };
       continue;
@@ -469,6 +470,8 @@ function parseTimeline(block, parseChildren) {
 
     if (current) {
       current.source += `${line}\n`;
+    } else if (line.trim().length > 0) {
+      hasOrphanContent = true;
     }
   }
 
@@ -476,7 +479,15 @@ function parseTimeline(block, parseChildren) {
     items.push(current);
   }
 
-  return withOptionalFields({
+  if (hasOrphanContent) {
+    warnings.push("timeline-content-before-first-item");
+  }
+
+  if (items.length === 0) {
+    warnings.push("timeline-empty-items");
+  }
+
+  return withOptionalFields(withWarnings({
     type: "timeline",
     direction: attrs.direction === "horizontal" ? "horizontal" : "vertical",
     items: items.map((item) => ({
@@ -485,22 +496,55 @@ function parseTimeline(block, parseChildren) {
       status: item.status,
       children: parseChildren(item.source.trim())
     }))
-  }, { unknownAttrs });
+  }, warnings), { unknownAttrs });
+}
+
+function parseTimelineHeader(headerText) {
+  // Peel off trailing `[k="v" ...]` attribute groups one at a time. Supports
+  // both `[title="A"] [status="success"]` and the combined form
+  // `[title="A" status="success"]`. Anything left over is the time field.
+  const bracketRe = /\s*\[([^\]]*)\]\s*$/;
+  const pairRe = /([a-zA-Z_][a-zA-Z0-9_-]*)\s*=\s*"([^"]*)"/g;
+  const collected = {};
+  let remainder = headerText;
+
+  while (true) {
+    const m = remainder.match(bracketRe);
+    if (!m) break;
+    for (const pair of m[1].matchAll(pairRe)) {
+      collected[pair[1]] = pair[2];
+    }
+    remainder = remainder.slice(0, m.index);
+  }
+
+  const status = ["success", "warning", "danger", "pending"].includes(collected.status)
+    ? collected.status
+    : "default";
+
+  return {
+    time: remainder.trim(),
+    title: typeof collected.title === "string" ? collected.title : null,
+    status
+  };
 }
 
 function parseKanban(block, parseChildren) {
   const columns = [];
+  const warnings = [];
   let current = null;
+  let hasOrphanContent = false;
 
   for (const line of block.content.split(/\r?\n/)) {
-    const match = line.match(/^@\s+(.*?)\s*$/);
-    
+    // Lenient leading whitespace (mirrors parseTimeline) so indented column
+    // headers still split into columns.
+    const match = line.match(/^\s*@\s+(.+?)\s*$/);
+
     if (match) {
       if (current) {
         columns.push(current);
       }
       current = {
-        title: match[1],
+        title: match[1].trim(),
         source: ""
       };
       continue;
@@ -508,6 +552,8 @@ function parseKanban(block, parseChildren) {
 
     if (current) {
       current.source += `${line}\n`;
+    } else if (line.trim().length > 0) {
+      hasOrphanContent = true;
     }
   }
 
@@ -515,13 +561,21 @@ function parseKanban(block, parseChildren) {
     columns.push(current);
   }
 
-  return {
+  if (hasOrphanContent) {
+    warnings.push("kanban-content-before-first-column");
+  }
+
+  if (columns.length === 0) {
+    warnings.push("kanban-empty-columns");
+  }
+
+  return withWarnings({
     type: "kanban",
     columns: columns.map((col) => ({
       title: col.title,
       children: parseChildren(col.source.trim())
     }))
-  };
+  }, warnings);
 }
 
 function parseDetails(block, parseChildren) {

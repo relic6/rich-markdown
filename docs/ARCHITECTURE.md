@@ -350,28 +350,35 @@ https://cdnjs.cloudflare.com/ajax/libs/rmd-renderer/{version}/themes/tech-dark.c
 
 也镜像到 jsdelivr 和 unpkg。版本号严格遵循 semver。
 
-### 5.3 仓库结构（monorepo, pnpm workspace）
+### 5.3 仓库结构（monorepo, npm workspace）
+
+当前真实落地的目录结构（与文中曾计划的 `charts-mini` / `flow-mini` 等独立子包不同——内置图表 / 流程图渲染已直接合入 `renderer-core`，体积仍远低于预算）：
 
 ```
 rich-markdown/
-├── docs/                  # 这套文档
-├── spec/                  # 形式化规范、测试用例
+├── docs/                  # 这套文档（含 PROGRESS.md 进度）
+├── spec/                  # 一致性规范与基线测试用例
 ├── packages/
-│   ├── ast/
-│   ├── parser-core/
-│   ├── blocks-core/
-│   ├── renderer-core/
-│   ├── runtime/
-│   ├── charts-mini/
-│   ├── flow-mini/
-│   ├── themes-default/
-│   └── cli/               # v0.2 启用
+│   ├── ast/               # AST 节点工厂、CORE_BLOCK_TYPES、validateAst
+│   ├── parser-core/       # CommonMark + ::: 围栏块解析
+│   ├── blocks-core/       # 14 个核心块的属性/内容解析
+│   ├── renderer-core/     # AST → HTML 字符串
+│   ├── renderer/          # 浏览器入口与 IIFE 包装
+│   ├── runtime/           # 交互块运行时（slider/export/tabs hydrate）
+│   ├── validator/         # JSON-Schema 风格的 AST 校验器
+│   ├── themes-default/    # default / notion-like / paper / tech-dark 4 套主题
+│   ├── cli/               # `rmd init / build / open / preview / publish`
+│   └── obsidian-plugin/   # Obsidian 客户端（live / split / preview 三模）
 ├── skills/
-│   ├── claude-code/
-│   ├── codex/             # v0.2
-│   └── cherry-studio/     # v0.2
-└── examples/              # 真实 .rmd 样本（含三种输出模式各一份）
+│   ├── claude/            # Claude Code skill（v0.1 主线）
+│   └── codex/             # Codex skill（v0.2 起开放）
+├── examples/              # 真实 .rmd 样本（含 v0.2-showcase 与三种输出模式各一份）
+├── scripts/               # build-dist 等工程脚本
+├── test/                  # node:test 单元测试
+└── dist/                  # 发布产物（rmd.min.js / cli.js / themes/*.css）
 ```
+
+> 注：`charts-mini` 与 `flow-mini` 作为独立 NPM 子包的拆分被推迟到 v1.0——目前它们仍然属于 `renderer-core` 的内部模块，整体核心 runtime 仍在体积预算内。
 
 ## 6. 关键技术选型决策（速记）
 
@@ -413,12 +420,19 @@ rich-markdown/
 
 ### 7.2 v0.2（迭代期，6-12 个月）
 
-- CLI（`rmd open / build / preview`）
-- VSCode 插件（语法高亮 + 预览）
-- 第三方块插件 API 公开
-- 4 个新块（diagram / stats / timeline / compare）
-- Codex 和 Cherry Studio 的 skill
-- 主题包发布规范
+> 本节状态以"已交付 / 进行中 / 未启动"标注，与 [`PROGRESS.md`](./PROGRESS.md) 严格保持一致。
+
+- ✅ **已交付**：CLI（`rmd init / build / open / preview / publish`，含三种输出模式）
+- ✅ **已交付**：6 个 v0.2 扩展块（`timeline` / `kanban` / `details` / `carousel` / `embed` / `math`）
+- ✅ **已交付**：Obsidian 插件（live / split / preview 三模 + 一致性测试）
+- ✅ **已交付**：4 套官方主题（default / notion-like / paper / tech-dark）+ themes-gallery 例
+- ✅ **已交付**：增强图表（`scatter` / `radar` / `area` / `donut` / `heatmap`）与双 Y 轴
+- ✅ **已交付**：增强滑块（双值范围 / 对数刻度 / 离散 marks）
+- ⏳ **进行中**：Codex skill / Cherry Studio skill
+- ⏳ **进行中**：VSCode 插件（语法高亮 + 预览）
+- ⏳ **未启动**：第三方块插件 API 公开（API 设计冻结需要先打磨内部插件）
+- ⏳ **未启动**：`:::diagram`（Mermaid 兼容入口、按需懒加载）与 `:::stats` / `:::compare` 块
+- ⏳ **未启动**：主题包发布规范
 
 ### 7.3 v1.0（成熟期，12-18 个月）
 

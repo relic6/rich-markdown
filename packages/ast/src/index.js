@@ -1,6 +1,7 @@
 export const RMD_AST_VERSION = "0.1.0";
 
 export const CORE_BLOCK_TYPES = new Set([
+  // v0.1 core 8 blocks
   "chart",
   "grid",
   "callout",
@@ -8,7 +9,14 @@ export const CORE_BLOCK_TYPES = new Set([
   "export",
   "flow",
   "diff",
-  "tabs"
+  "tabs",
+  // v0.2 extension blocks
+  "timeline",
+  "kanban",
+  "details",
+  "carousel",
+  "embed",
+  "math"
 ]);
 
 export function createRoot({ frontmatter = {}, warnings = [], children = [] } = {}) {

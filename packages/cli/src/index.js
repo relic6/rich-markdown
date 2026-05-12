@@ -10,7 +10,7 @@ import { validate } from "../../validator/src/index.js";
 import { createPreviewServer } from "./preview-server.js";
 
 const USAGE = `
-Rich Markdown (rmd) CLI v0.1.1
+Rich Markdown (rmd) CLI v0.1.2
 
 Usage:
   rmd <command> [options]
@@ -88,7 +88,7 @@ export async function main(argv = process.argv.slice(2), io = defaultIo()) {
     }
 
     if (command === "--version" || command === "-v") {
-      io.stdout(`rmd v0.1.1\n`);
+      io.stdout(`rmd v0.1.2\n`);
       return 0;
     }
 

@@ -549,26 +549,66 @@ body[data-rmd-theme] {
 
 .rmd-timeline-horizontal ol {
   display: flex;
+  flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 20px;
-  padding-bottom: 10px;
+  overflow-y: hidden;
+  gap: 24px;
+  padding-bottom: 12px;
+  /* Treat the ol as a horizontal scroll viewport with explicit snap so
+     each @item lines up nicely when the user scrolls. */
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
 }
 
 .rmd-timeline-horizontal .rmd-timeline-item {
-  flex: 0 0 auto;
-  min-width: 200px;
+  /* Cap each item to a predictable width so a single overflowing item
+     can't squeeze siblings out of the visible viewport. Long prose
+     wraps inside the box; the user scrolls horizontally to see the
+     next item. */
+  flex: 0 0 240px;
+  width: 240px;
+  max-width: 240px;
   position: relative;
   padding-top: 28px;
+  scroll-snap-align: start;
+  /* Prevent runaway content (long URLs, code, CJK without spaces) from
+     widening the flex item beyond its declared basis. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-.rmd-timeline-horizontal ol::before {
+.rmd-timeline-horizontal .rmd-timeline-content {
+  /* Belt-and-suspenders: cap inner content too, in case authors nest
+     wide blocks (chart, table) inside a timeline item. */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.rmd-timeline-horizontal .rmd-timeline-content pre,
+.rmd-timeline-horizontal .rmd-timeline-content img,
+.rmd-timeline-horizontal .rmd-timeline-content table {
+  max-width: 100%;
+}
+
+/* The connector line is drawn per-item (::after) so that it scrolls with
+   the items inside the overflow:auto container. The previous ol::before
+   approach anchored the line to the visible viewport, which made the
+   line stay put while items scrolled past — broken for any timeline
+   wider than the viewport. */
+.rmd-timeline-horizontal .rmd-timeline-item::after {
   position: absolute;
   top: 5px;
-  left: 0;
-  right: 0;
+  left: 6px;
+  /* Extend across the 24px gap to meet the next item's dot. */
+  right: calc(-24px + 6px);
   height: 2px;
   background: var(--rmd-color-line);
   content: "";
+}
+
+.rmd-timeline-horizontal .rmd-timeline-item:last-child::after {
+  display: none;
 }
 
 .rmd-timeline-horizontal .rmd-timeline-item::before {

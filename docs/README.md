@@ -19,13 +19,15 @@
 | **运营** | [11. CONTRIBUTING](./CONTRIBUTING.md) | 1-2 页 | 开源前 | 贡献者 |
 |        | [12. ROADMAP](./ROADMAP.md) | 1-2 页 | 开源前 | 用户 |
 |        | [13. ADRs 决策记录](./adr/) | 每条 1 页 | 持续 | 未来开发者 |
+|        | [14. PROGRESS 工程进度](./PROGRESS.md) | 1-2 页 | 持续维护 | 当前与新进开发者 |
 
 ## 阅读建议
 
 - **第一次了解项目**：读 `VISION.md` → `QUICKSTART.md`
 - **想理解设计取舍**：读 `PRINCIPLES.md` → `ARCHITECTURE.md` → `adr/`
 - **想接入或开发渲染器**：读 `CONTRACT.md` → `DATA-MODEL.md` → `API-REFERENCE.md`
-- **想贡献代码**：读 `CONTRIBUTING.md` → `ROADMAP.md`
+- **想贡献代码 / 接手开发**：读 `PROGRESS.md` → `CONTRIBUTING.md` → `ROADMAP.md`
+- **想快速了解当前完成度**：直接打开 `PROGRESS.md`
 
 ## 文档约定
 

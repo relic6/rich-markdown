@@ -151,3 +151,89 @@ test("tabs parse panels and repair a missing default", () => {
   assert.equal(tabs.panels.length, 2);
   assert.equal(tabs.panels[1].children[0].type, "code-block");
 });
+
+test("timeline parses every item including multi-bracket attributes", () => {
+  const source = `:::timeline
+@ 2026-01-01 [title="项目立项"] [status="success"]
+项目初步规划完成。
+
+@ 2026-03-15 [title="v0.1 发布"] [status="success"]
+完成核心解析器的基础架构。
+
+@ 2026-05-10 [title="v0.2"] [status="pending"]
+新增高级互动组件。
+
+@ 2026-12-01 [title="1.0"]
+计划在此时间点开放完整源码库。
+:::`;
+  const timeline = parse(source).children[0];
+
+  assert.equal(timeline.type, "timeline");
+  assert.equal(timeline.direction, "vertical");
+  assert.equal(timeline.items.length, 4);
+  assert.deepEqual(
+    timeline.items.map((item) => [item.time, item.title, item.status]),
+    [
+      ["2026-01-01", "项目立项", "success"],
+      ["2026-03-15", "v0.1 发布", "success"],
+      ["2026-05-10", "v0.2", "pending"],
+      ["2026-12-01", "1.0", "default"]
+    ]
+  );
+  // Every item must carry its prose content.
+  for (const item of timeline.items) {
+    assert.equal(item.children.length >= 1, true, `item ${item.time} has no children`);
+    assert.equal(item.children[0].type, "paragraph");
+  }
+});
+
+test("timeline tolerates indented @ headers and combined-attribute brackets", () => {
+  const source = `:::timeline direction="horizontal"
+  @ 阶段一 [status="success"]
+  需求分析与设计
+  @ 阶段二 [status="warning"]
+  高可用架构开发
+  @ 阶段三 [title="收尾" status="pending"]
+  系统联调与发布
+:::`;
+  const timeline = parse(source).children[0];
+
+  assert.equal(timeline.direction, "horizontal");
+  assert.equal(timeline.items.length, 3);
+  assert.deepEqual(
+    timeline.items.map((item) => [item.time, item.title, item.status]),
+    [
+      ["阶段一", null, "success"],
+      ["阶段二", null, "warning"],
+      ["阶段三", "收尾", "pending"]
+    ]
+  );
+});
+
+test("timeline reports a warning when there are no @ items", () => {
+  const source = `:::timeline
+just some text without any item header
+:::`;
+  const timeline = parse(source).children[0];
+
+  assert.equal(timeline.type, "timeline");
+  assert.equal(timeline.items.length, 0);
+  assert.ok(timeline.warnings?.includes("timeline-empty-items"));
+  assert.ok(timeline.warnings?.includes("timeline-content-before-first-item"));
+});
+
+test("kanban tolerates indented column headers", () => {
+  const source = `:::kanban
+  @ Todo
+  - task 1
+  @ Doing
+  - task 2
+  @ Done
+  - task 3
+:::`;
+  const kanban = parse(source).children[0];
+
+  assert.equal(kanban.type, "kanban");
+  assert.equal(kanban.columns.length, 3);
+  assert.deepEqual(kanban.columns.map((col) => col.title), ["Todo", "Doing", "Done"]);
+});

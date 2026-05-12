@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { buildHtml, createRenderer } from "../packages/renderer/src/index.js";
 
-const source = readFileSync(new URL("../examples/rate-limit-decision.rmd", import.meta.url), "utf8");
+const source = readFileSync(new URL("../examples/v0.2-showcase.rmd", import.meta.url), "utf8");
 
 test("builds self-contained HTML without external resources", () => {
   const html = buildHtml(source, { mode: "self-contained", theme: "default" });

@@ -1,6 +1,6 @@
 ---
 name: rich-markdown
-description: Generate Rich Markdown (.rmd) source and self-contained interactive HTML artifacts. Use when the user asks for rmd, Rich Markdown, rich interactive Markdown, token-efficient rich docs, shareable AI documents, charts, sliders, copy/export blocks, flow diagrams, timelines, kanban boards, collapsible details, carousels, embeds, math blocks, comparison reports, PR explainers, tunable prototypes, project status reports, or any rich document that should remain readable as Markdown but render as a polished interactive HTML page.
+description: {{description}}
 ---
 
 # Rich Markdown
@@ -8,7 +8,8 @@ description: Generate Rich Markdown (.rmd) source and self-contained interactive
 Use this skill when the user wants a rich, readable, interactive document
 instead of plain Markdown or hand-written HTML. The local renderer
 (`packages/cli`) turns `.rmd` source into a self-contained HTML artifact that
-renders in Claude's chat / desktop sandbox, in any browser, or as an offline file.
+renders in {{display_name}}'s chat / desktop sandbox, in any browser,
+or as an offline file.
 
 ## Why .rmd over plain Markdown or HTML
 
@@ -16,7 +17,7 @@ renders in Claude's chat / desktop sandbox, in any browser, or as an offline fil
 - The renderer adds charts, layouts, sliders, exports, flows, timelines, etc.
   without forcing you to write SVG/CSS/JS.
 - One source file, one self-contained HTML. No external assets needed for
-  Claude-rendered artifacts.
+  sandbox-rendered artifacts.
 
 ## Output Choice (decide before writing)
 
@@ -90,8 +91,13 @@ When unsure, default to source `.rmd` plus a `self-contained` HTML build.
   Don't invent block names.
 
 - **Self-contained for sandboxes.** If the user will view the artifact inside
-  Claude's sandbox, in email, or anywhere external assets can't be fetched,
-  use `--mode self-contained`. `split` mode will not load in those contexts.
+  {{display_name}}'s sandbox, in email, or anywhere external assets
+  can't be fetched, use `--mode self-contained`. `split` mode will not load
+  in those contexts.
+
+- **Pair slider with export.** Whenever the reader should tune values and
+  copy the result back to {{display_name}} or to code, use
+  `:::slider` + `:::export`.
 
 ## Block Selection Cheatsheet
 
@@ -115,7 +121,7 @@ The 14 supported blocks (v0.2): `chart`, `grid`, `callout`, `slider`,
 
 ## Default Recipe
 
-For Claude-visible rich output:
+For {{display_name}}-visible rich output:
 
 1. Write `examples/<short-name>.rmd` with appropriate blocks.
 2. `npm run rmd -- validate examples/<short-name>.rmd`

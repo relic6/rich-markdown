@@ -7,23 +7,23 @@ import test from "node:test";
 import { main } from "../packages/cli/src/index.js";
 
 test("CLI parses a file to AST JSON", async () => {
-  const output = await runCli(["parse", "examples/rate-limit-decision.rmd"]);
+  const output = await runCli(["parse", "examples/v0.2-showcase.rmd"]);
   const ast = JSON.parse(output.stdout);
 
   assert.equal(output.code, 0);
   assert.equal(ast.type, "root");
-  assert.equal(ast.frontmatter.title, "支付服务限流方案对比");
+  assert.equal(ast.frontmatter.title, "Rich Markdown v0.2 Showcase");
 });
 
 test("CLI validates a file", async () => {
-  const output = await runCli(["validate", "examples/rate-limit-decision.rmd"]);
+  const output = await runCli(["validate", "examples/v0.2-showcase.rmd"]);
 
   assert.equal(output.code, 0);
   assert.equal(output.stdout, "ok\n");
 });
 
 test("CLI builds HTML to stdout", async () => {
-  const output = await runCli(["build", "examples/rate-limit-decision.rmd", "--mode", "cdn", "--version", "0.1.0"]);
+  const output = await runCli(["build", "examples/v0.2-showcase.rmd", "--mode", "cdn", "--version", "0.1.0"]);
 
   assert.equal(output.code, 0);
   assert.match(output.stdout, /rmd-renderer\/0\.1\.0\/rmd\.min\.js/);
@@ -35,7 +35,7 @@ test("CLI writes build output to --out", async () => {
   const out = join(dir, "nested", "demo.html");
 
   try {
-    const output = await runCli(["build", "examples/rate-limit-decision.rmd", "--out", out]);
+    const output = await runCli(["build", "examples/v0.2-showcase.rmd", "--out", out]);
     const html = await readFile(out, "utf8");
 
     assert.equal(output.code, 0);
@@ -46,27 +46,31 @@ test("CLI writes build output to --out", async () => {
   }
 });
 
-test("CLI init installs Codex and Claude skills", async () => {
+test("CLI init installs Codex, Claude, and Gemini skills", async () => {
   const dir = await mkdtemp(join(tmpdir(), "rmd-init-"));
   const previousCwd = process.cwd();
 
   try {
     process.chdir(dir);
-    const output = await runCli(["init", "--ai", "codex,claude"]);
+    const output = await runCli(["init", "--ai", "codex,claude,gemini"]);
 
     const codexRoot = join(dir, ".codex", "skills", "rich-markdown");
     const claudeRoot = join(dir, ".claude", "skills", "rich-markdown");
+    const geminiRoot = join(dir, ".gemini", "skills", "rich-markdown");
     const codexSkill = await readFile(join(codexRoot, "SKILL.md"), "utf8");
     const claudeSkill = await readFile(join(claudeRoot, "SKILL.md"), "utf8");
+    const geminiSkill = await readFile(join(geminiRoot, "SKILL.md"), "utf8");
 
     assert.equal(output.code, 0);
     assert.match(output.stdout, /Codex skill installed:/);
     assert.match(output.stdout, /Claude Code skill installed:/);
+    assert.match(output.stdout, /Gemini skill installed:/);
     assert.match(codexSkill, /name: rich-markdown/);
     assert.match(claudeSkill, /name: rich-markdown/);
+    assert.match(geminiSkill, /name: rich-markdown/);
     assert.equal(existsSync(join(codexRoot, "references", "blocks.md")), true);
-    assert.equal(existsSync(join(codexRoot, "agents", "openai.yaml")), true);
     assert.equal(existsSync(join(claudeRoot, "examples", "decision-report.rmd")), true);
+    assert.equal(existsSync(join(geminiRoot, "references", "artifacts.md")), true);
   } finally {
     process.chdir(previousCwd);
     await rm(dir, { recursive: true, force: true });
@@ -78,7 +82,7 @@ test("CLI split build writes local assets next to the HTML", async () => {
   const out = join(dir, "nested", "demo.html");
 
   try {
-    const output = await runCli(["build", "examples/rate-limit-decision.rmd", "--mode", "split", "--theme", "default", "--out", out]);
+    const output = await runCli(["build", "examples/v0.2-showcase.rmd", "--mode", "split", "--theme", "default", "--out", out]);
     const html = await readFile(out, "utf8");
     const script = await readFile(join(dir, "nested", "rmd.min.js"), "utf8");
     const css = await readFile(join(dir, "nested", "themes", "default.css"), "utf8");
@@ -100,7 +104,7 @@ test("CLI reports invalid arguments", async () => {
 });
 
 test("CLI open can start and close a preview URL in no-open mode", async () => {
-  const output = await runCli(["open", "examples/rate-limit-decision.rmd", "--no-open", "true"]);
+  const output = await runCli(["open", "examples/v0.2-showcase.rmd", "--no-open", "true"]);
 
   assert.equal(output.code, 0);
   assert.match(output.stdout, /^http:\/\/127\.0\.0\.1:\d+\/\n$/);

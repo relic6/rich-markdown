@@ -56,6 +56,19 @@ To see all available commands and flags:
 rmd --help
 ```
 
+## Obsidian Plugin (Manual Install)
+
+If you want to use Rich Markdown inside Obsidian:
+
+1. **Build the plugin**:
+   ```bash
+   npm run obsidian:build
+   ```
+2. **Install to your vault**:
+   Create a folder at `<your-vault>/.obsidian/plugins/rich-markdown` and copy all files from `packages/obsidian-plugin/dist/` into it.
+3. **Enable**:
+   Restart Obsidian or refresh the plugin list, then enable "Rich Markdown" in Community Plugins settings.
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.

@@ -30,8 +30,9 @@
 | CLI (`rmd init / parse / validate / build / open`) | ✅ | `@rmd/cli` → `dist/cli.js` | `test/cli.test.js` |
 | 三种输出模式（self-contained / cdn / split） | ✅ | `rmd build --mode ...` | `test/build.test.js` + `examples/split-demo/` |
 | Obsidian 插件（live / split / preview 三模） | ✅ | `@rmd/obsidian-plugin` | `packages/obsidian-plugin/tests/*.test.js` |
-| Claude Code skill | ✅ | `skills/claude/` | 人工 + `skills/claude/examples/` |
-| Codex skill | 🟡 | `skills/codex/` | 待补 |
+| Claude Code skill | ✅ | `skills/platforms/claude.json` → `skills/dist/claude/` | 人工 + `skills/shared/examples/` |
+| Codex skill | 🟡 | `skills/platforms/codex.json` → `skills/dist/codex/` | 待补 |
+| Gemini skill | 🟡 | `skills/platforms/gemini.json` → `skills/dist/gemini/` | 待补 |
 | VSCode 插件 | ⏳ | — | — |
 | 第三方块插件 API（registerBlock） | ⏳ | — | — |
 | 短链分享服务 `rmd.sh` | ⏳ | — | — |
@@ -89,7 +90,7 @@
 ### 2.5 CLI
 
 - 命令：`rmd init` / `rmd parse` / `rmd validate` / `rmd build` / `rmd open`。
-- `init` 会把 `skills/claude` 或 `skills/codex` 安装到目标 AI 客户端的指定目录。
+- `init` 会把 `skills/dist/<platform>/` 安装到目标 AI 客户端的指定目录（支持 `--ai claude|codex|gemini|all`）。
 - `open` 内置 preview-server（基于 Node `http`），支持本地热重载（轮询）。
 - `build` 支持 `--mode self-contained|cdn|split`，覆盖 ARCHITECTURE §3.3 的三种模式。
 
@@ -104,8 +105,11 @@
 
 ### 2.7 AI Skills
 
-- **Claude Code skill** (`skills/claude/`)：含 `SKILL.md` + `references/blocks.md` + `examples/`。已经过实测，能让 Claude 直接生成正确的 `.rmd` + Mode B 壳。
-- **Codex skill** (`skills/codex/`)：骨架已就位（含 `references/blocks.md`），但 `SKILL.md` 主提示词尚未完成 few-shot 调优。
+- 共享内容集中在 `skills/shared/`（`SKILL.md` 模板 + `references/blocks.md` + `references/artifacts.md` + `examples/`），每个目标 AI 只需 `skills/platforms/<id>.json` 一个文件描述差异（`display_name` / `description` / `install_root`）。
+- `npm run build:skills` 把模板装配为 `skills/dist/<id>/`，由 `rmd init --ai <id>` 投递到用户机器。
+- **Claude Code skill** (`skills/dist/claude/`)：已经过实测，能让 Claude 直接生成正确的 `.rmd` + Mode B 壳。
+- **Codex skill** (`skills/dist/codex/`)：骨架已就位，`SKILL.md` 主提示词尚未完成 few-shot 调优。
+- **Gemini skill** (`skills/dist/gemini/`)：从共享模板生成，尚未在 Gemini 中实测调优。
 
 ## 3. 规划中 / 待开发的功能
 
@@ -113,7 +117,7 @@
 
 | 任务 | 优先级 | 负责模块 | 验收 |
 |---|---|---|---|
-| 完善 Codex skill 的 SKILL.md + few-shot | 高 | `skills/codex/SKILL.md` | 在 Codex 中零示例生成正确率 ≥ 90% |
+| 完善 Codex / Gemini skill 的 SKILL.md + few-shot | 高 | `skills/shared/SKILL.md` + `skills/platforms/{codex,gemini}.json` | 在各平台零示例生成正确率 ≥ 90% |
 | `:::chart` 非 bar 类型的 SVG 渲染（line / pie / area / scatter / radar / donut / heatmap） | 高 | `renderer-core` | 8 种类型在 `examples/v0.2-showcase.html` 视觉验证 |
 | `:::carousel` 真正的 CSS scroll-snap + JS autoplay | 中 | `renderer-core` + `runtime` | 手势/触控板滑动正常 |
 | `:::embed` 安全策略（白名单 + iframe sandbox） | 中 | `renderer-core` | 单元测试覆盖 youtube / bilibili / iframe |

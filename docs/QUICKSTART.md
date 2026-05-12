@@ -37,7 +37,7 @@ Q4 380
 
 下面是一份完整的 `.rmd` 源文件，模拟 AI agent 帮一位工程师做架构选型。**它通篇只用了 5 种扩展块**，但展示了 `.rmd` 与 Markdown 的核心差距。
 
-### 2.1 源文件（`rate-limit-decision.rmd`）
+### 2.1 源文件（教学示例，可保存为 `demo.rmd`）
 
 ```rmd
 ---
@@ -176,18 +176,18 @@ QUICKSTART 阶段我们只用 6 种核心块就讲完了一个完整故事：
 1. 加载 skill 提供的 `.rmd` 块速查表（约 500 行 markdown，一次加载）
 2. 决定使用 `:::grid` 做对比、`:::chart` 做性能、`:::slider` + `:::export` 做原型、`:::flow` 做流程、`:::diff` 做差异
 3. 生成上面那份 65 行源文件
-4. 写出文件 `rate-limit-decision.rmd`，提示用户用 `rmd open` 命令在浏览器查看
+4. 写出文件 `demo.rmd`，提示用户用 `rmd open` 命令在浏览器查看
 
 **对比：不用 `.rmd` skill 时**，Claude Code 会输出一份 ≈ 500 行的 HTML 单文件，包含内联 CSS、SVG、JS，token 用量 ≈ 1800，diff 几乎不可读。
 
 ## 5. 人的视角：用户拿到这份文档之后做什么
 
-1. 在浏览器打开 `rate-limit-decision.rmd` 的渲染页面
+1. 在浏览器打开 `demo.rmd` 的渲染页面
 2. 看完三栏对比 + 柱状图，几秒内就有方向感
 3. **关键时刻**：拖动 capacity 和 refill_rate 滑块，看下方 YAML 实时更新
 4. 觉得参数对劲，按"复制为限流配置"按钮，剪贴板里就是替换好的 YAML
 5. 切到代码里粘贴，commit
-6. 把 `rate-limit-decision.rmd` 通过短链发给同事 review，同事打开就能看到完全一致的渲染
+6. 把 `demo.rmd` 通过短链发给同事 review，同事打开就能看到完全一致的渲染
 
 **整个过程没有人手写 markdown、没有人改 HTML、没有人在 GitHub diff 里挣扎**。这就是 PRINCIPLES P7（交互一等公民）和 VISION "保持人在循环中" 的具体兑现。
 
@@ -221,6 +221,9 @@ npx rmd init --ai claude
 npx rmd open demo.rmd          # 在默认浏览器打开渲染页
 npx rmd open demo.rmd --theme paper   # 用 paper 主题
 npx rmd build demo.rmd --out demo.html  # 输出自包含 HTML 用于分享
+
+# 也可以直接用仓库自带的覆盖全部 14 个块的展示示例
+npx rmd open examples/v0.2-showcase.rmd
 ```
 
 在那之前，可以做的事：

@@ -5,16 +5,14 @@ import { parse } from "../packages/parser-core/src/index.js";
 import { createDocumentState, hydrate, renderTemplate, setSliderValue } from "../packages/runtime/src/index.js";
 
 test("creates document state from sliders in an AST", () => {
-  const source = readFileSync(new URL("../examples/rate-limit-decision.rmd", import.meta.url), "utf8");
+  const source = readFileSync(new URL("../examples/v0.2-showcase.rmd", import.meta.url), "utf8");
   const ast = parse(source);
   const state = createDocumentState(ast);
 
-  assert.deepEqual(state.sliders, {
-    capacity: 200,
-    refill_rate: 50,
-    burst_window: 10
-  });
-  assert.deepEqual(state.activeTabs, {});
+  // v0.2-showcase has a single range slider plus a tabs block with a default panel.
+  assert.deepEqual(state.sliders, { volume_range: [100, 500] });
+  // Tabs default is "Vue" — see §9 in the showcase.
+  assert.equal(Object.values(state.activeTabs)[0], "Vue");
 });
 
 test("renders export templates from current slider state", () => {

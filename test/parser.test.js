@@ -4,50 +4,62 @@ import test from "node:test";
 import { parse } from "../packages/parser-core/src/index.js";
 import { validate } from "../packages/validator/src/index.js";
 
-test("parses the quickstart rate-limit example into core AST nodes", () => {
-  const source = readFileSync(new URL("../examples/rate-limit-decision.rmd", import.meta.url), "utf8");
+test("parses the v0.2 showcase example into core AST nodes", () => {
+  const source = readFileSync(new URL("../examples/v0.2-showcase.rmd", import.meta.url), "utf8");
   const ast = parse(source);
   const validation = validate(ast);
 
   assert.equal(validation.ok, true);
-  assert.equal(ast.frontmatter.title, "支付服务限流方案对比");
-  assert.equal(ast.frontmatter.theme, "tech-dark");
+  assert.equal(ast.frontmatter.title, "Rich Markdown v0.2 Showcase");
   assert.deepEqual(ast.warnings, []);
 
-  const types = ast.children.map((node) => node.type);
-  assert.deepEqual(types.filter((type) => ["grid", "chart", "callout", "slider", "export", "flow", "diff"].includes(type)), [
-    "grid",
-    "chart",
-    "callout",
-    "slider",
-    "slider",
-    "slider",
-    "export",
-    "flow",
-    "diff"
-  ]);
+  // The showcase exercises every block type at least once.
+  const typeSet = new Set(ast.children.map((node) => node.type));
+  for (const blockType of [
+    "timeline", "kanban", "carousel", "details", "embed", "math",
+    "grid", "chart", "slider", "tabs", "flow", "diff", "export"
+  ]) {
+    assert.ok(typeSet.has(blockType), `missing block type: ${blockType}`);
+  }
 
-  const chart = ast.children.find((node) => node.type === "chart");
-  assert.equal(chart.chartType, "bar");
-  assert.equal(chart.title, "1000 RPS 压测下的 P99 延迟（ms，越低越好）");
-  assert.equal(chart.data[2].label, "滑动窗口");
-  assert.deepEqual(chart.data[2].values, [41]);
+  // First chart is the "核心包体积对比" bar chart.
+  const firstChart = ast.children.find((node) => node.type === "chart");
+  assert.equal(firstChart.chartType, "bar");
+  assert.equal(firstChart.title, "核心包体积对比（KB gzip）");
+  assert.equal(firstChart.data[0].label, "Parser");
+  assert.deepEqual(firstChart.data[0].values, [18]);
 
+  // The showcase contains all 8 chart types.
+  const chartTypes = ast.children
+    .filter((node) => node.type === "chart")
+    .map((node) => node.chartType);
+  assert.deepEqual(
+    chartTypes.sort(),
+    ["area", "bar", "donut", "heatmap", "line", "pie", "radar", "scatter"]
+  );
+
+  // First grid in the showcase is the 3-column masonry layout.
   const grid = ast.children.find((node) => node.type === "grid");
   assert.equal(grid.columns, 3);
-  assert.equal(grid.cells.length, 3);
-  assert.equal(grid.cells[0][0].type, "heading");
-  assert.equal(grid.cells[0][1].children.some((node) => node.type === "strong"), true);
+  assert.equal(grid.layout, "masonry");
 
-  const exportNode = ast.children.find((node) => node.type === "export");
-  assert.equal(exportNode.label, "复制为限流配置");
-  assert.deepEqual(exportNode.references, ["capacity", "refill_rate", "burst_window"]);
+  // Slider section uses a single range slider.
+  const slider = ast.children.find((node) => node.type === "slider");
+  assert.equal(slider.name, "volume_range");
+  assert.deepEqual(slider.default, [100, 500]);
 
+  // Flow has three sequential edges ending at Browser.
   const flow = ast.children.find((node) => node.type === "flow");
-  assert.deepEqual(flow.edges.at(-1), { from: "异常", to: "回滚" });
+  assert.deepEqual(flow.edges.at(-1), { from: "HTML", to: "Browser" });
 
+  // Diff has one removal followed by two additions.
   const diff = ast.children.find((node) => node.type === "diff");
-  assert.deepEqual(diff.lines.map((line) => line.kind), ["remove", "add"]);
+  assert.deepEqual(diff.lines.map((line) => line.kind), ["remove", "add", "add"]);
+
+  // Export uses JSON format (no template references).
+  const exportNode = ast.children.find((node) => node.type === "export");
+  assert.equal(exportNode.label, "复制代码片段");
+  assert.equal(exportNode.format, "json");
 });
 
 test("parses basic CommonMark inline nodes", () => {

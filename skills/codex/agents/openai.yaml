@@ -1,8 +1,0 @@
-interface:
-  display_name: "Rich Markdown"
-  short_description: "Generate interactive .rmd documents"
-  brand_color: "#2563EB"
-  default_prompt: "Use $rich-markdown to create a self-contained interactive .rmd HTML report."
-
-policy:
-  allow_implicit_invocation: true

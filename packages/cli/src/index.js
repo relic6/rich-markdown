@@ -23,7 +23,7 @@ Commands:
   open <file>        Start a local dev server and preview the .rmd file
 
 Options for 'init':
-  --ai <ids>        Target AI assistant: codex, claude, or all
+  --ai <ids>        Target AI assistant: codex, claude, gemini, or all
   --force true      Overwrite existing skill files
 
 Options for 'build' and 'open':
@@ -42,6 +42,7 @@ Global Options:
 Examples:
   rmd init --ai codex
   rmd init --ai claude
+  rmd init --ai gemini
   rmd parse examples/v0.2-showcase.rmd
   rmd build examples/china-pet-market-analysis.rmd --mode self-contained --out dist/demo.html
   rmd open examples/v0.2-showcase.rmd --port 3000
@@ -56,6 +57,10 @@ const PLATFORM_TARGETS = {
   claude: {
     displayName: "Claude Code",
     root: ".claude"
+  },
+  gemini: {
+    displayName: "Gemini",
+    root: ".gemini"
   }
 };
 
@@ -140,7 +145,7 @@ function resolveInitPlatforms(rawAi) {
   if (!rawAi) {
     const detected = detectPlatform();
     if (detected) return [detected];
-    throw new Error("init requires --ai <codex|claude|all>");
+    throw new Error("init requires --ai <codex|claude|gemini|all>");
   }
 
   const values = String(rawAi)
@@ -161,6 +166,7 @@ function resolveInitPlatforms(rawAi) {
 function detectPlatform() {
   if (existsSync(resolve(process.cwd(), ".codex"))) return "codex";
   if (existsSync(resolve(process.cwd(), ".claude"))) return "claude";
+  if (existsSync(resolve(process.cwd(), ".gemini"))) return "gemini";
   return null;
 }
 
@@ -189,9 +195,16 @@ function parseInitArgs(args) {
 
 function resolveSkillSource(platform) {
   const __dirname = dirname(fileURLToPath(import.meta.url));
+  // Search order (first hit wins):
+  //   1. Pre-assembled per-platform output at `skills/dist/<platform>` —
+  //      what `npm run build:skills` produces from `skills/shared/` +
+  //      `skills/platforms/<platform>.json`. Prefer this so a normal
+  //      checkout uses the up-to-date assembled tree.
+  //   2. Published-package layout `assets/skills/<platform>` — used after
+  //      `npm publish` flattens dist/ alongside assets/.
   const candidates = [
-    resolve(__dirname, "../skills", platform),
-    resolve(__dirname, "../../../skills", platform),
+    resolve(__dirname, "../../../skills/dist", platform),
+    resolve(__dirname, "../skills/dist", platform),
     resolve(__dirname, "../assets/skills", platform)
   ];
 

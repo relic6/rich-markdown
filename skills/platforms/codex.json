@@ -1,0 +1,6 @@
+{
+  "id": "codex",
+  "display_name": "Codex",
+  "description": "Generate Rich Markdown (.rmd) documents and self-contained Rich Markdown HTML artifacts for AI-authored reports, plans, comparisons, PR explanations, prototypes, research briefs, timelines, kanbans, and tunable interactive demos. Use when the user asks for rmd, Rich Markdown, rich interactive Markdown, token-efficient rich docs, shareable AI documents, charts, sliders, export/copy blocks, flow diagrams, timelines, kanban boards, collapsible details, carousels, embeds, math blocks, or wants a Codex response rendered with the local Rich Markdown renderer.",
+  "install_root": ".codex/skills/rich-markdown"
+}

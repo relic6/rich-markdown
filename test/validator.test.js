@@ -4,8 +4,8 @@ import test from "node:test";
 import { parse } from "../packages/parser-core/src/index.js";
 import { validate } from "../packages/validator/src/index.js";
 
-test("validator accepts the quickstart example AST", () => {
-  const source = readFileSync(new URL("../examples/rate-limit-decision.rmd", import.meta.url), "utf8");
+test("validator accepts the v0.2 showcase example AST", () => {
+  const source = readFileSync(new URL("../examples/v0.2-showcase.rmd", import.meta.url), "utf8");
   const result = validate(parse(source));
 
   assert.equal(result.ok, true);

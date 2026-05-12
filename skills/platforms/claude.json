@@ -1,0 +1,6 @@
+{
+  "id": "claude",
+  "display_name": "Claude",
+  "description": "Generate Rich Markdown (.rmd) source and self-contained interactive HTML artifacts. Use when the user asks for rmd, Rich Markdown, rich interactive Markdown, token-efficient rich docs, shareable AI documents, charts, sliders, copy/export blocks, flow diagrams, timelines, kanban boards, collapsible details, carousels, embeds, math blocks, comparison reports, PR explainers, tunable prototypes, project status reports, or any rich document that should remain readable as Markdown but render as a polished interactive HTML page.",
+  "install_root": ".claude/skills/rich-markdown"
+}

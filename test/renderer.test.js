@@ -5,17 +5,20 @@ import { parse } from "../packages/parser-core/src/index.js";
 import { createRenderer, render } from "../packages/renderer/src/index.js";
 import { renderFragmentToString, renderNode, renderToString } from "../packages/renderer-core/src/index.js";
 
-test("renders the quickstart example to stable semantic HTML", () => {
-  const source = readFileSync(new URL("../examples/rate-limit-decision.rmd", import.meta.url), "utf8");
+test("renders the v0.2 showcase example to stable semantic HTML", () => {
+  const source = readFileSync(new URL("../examples/v0.2-showcase.rmd", import.meta.url), "utf8");
   const html = renderToString(source);
 
   assert.match(html, /<main class="rmd-document" data-rmd-version="0\.1\.0">/);
   assert.match(html, /data-rmd-block="grid"/);
   assert.match(html, /data-rmd-block="chart"/);
-  assert.match(html, /<title>1000 RPS 压测下的 P99 延迟/);
+  assert.match(html, /<title>核心包体积对比/);
   assert.match(html, /data-rmd-block="slider"/);
-  assert.match(html, /data-unit=""/);
-  assert.match(html, /data-references="capacity,refill_rate,burst_window"/);
+  assert.match(html, /data-unit="QPS"/);
+  assert.match(html, /data-rmd-block="timeline"/);
+  assert.match(html, /data-rmd-block="kanban"/);
+  assert.match(html, /data-rmd-block="carousel"/);
+  assert.match(html, /data-rmd-block="math"/);
   assert.match(html, /data-rmd-block="flow"/);
   assert.match(html, /rmd-diff-add/);
 });

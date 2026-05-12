@@ -20,7 +20,7 @@ npm run rmd -- build path/to/doc.rmd --mode self-contained --out path/to/doc.htm
 Single HTML file with the renderer, theme CSS, runtime, and `.rmd` source all
 inlined. Zero external dependencies. Best for:
 
-- Claude desktop / chat sandbox (the artifact has to be self-contained)
+- {{display_name}} desktop / chat sandbox (the artifact has to be self-contained)
 - Email attachments
 - Offline / archival
 - S3 / static-host one-click sharing
@@ -56,8 +56,8 @@ files in the same directory. Best for:
 - Custom hosting where you want to serve the renderer from your own origin
 - Inspecting the generated assets
 
-Cannot be opened in sandboxed environments (Claude artifact, email) because
-the relative asset paths will 404.
+Cannot be opened in sandboxed environments ({{display_name}} artifact,
+email) because the relative asset paths will 404.
 
 ## Validation
 
@@ -73,7 +73,7 @@ validation — the renderer may degrade silently to plain code blocks.
 
 ## Recommended Default
 
-For most Claude-driven requests:
+For most {{display_name}}-driven requests:
 
 ```bash
 npm run rmd -- validate examples/my-doc.rmd

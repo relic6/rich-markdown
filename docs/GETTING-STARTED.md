@@ -154,7 +154,7 @@ Prompt -> RMD source -> Validate -> Build HTML -> View
 | `embed` | 视频/地图嵌入 | 多媒体内容 |
 | `math` | LaTeX 公式 | 学术文档 |
 
-完整属性表见 [`CONTRACT.md`](./CONTRACT.md) §2 或 [`skills/claude/references/blocks.md`](../skills/claude/references/blocks.md)。
+完整属性表见 [`CONTRACT.md`](./CONTRACT.md) §2 或 [`skills/shared/references/blocks.md`](../skills/shared/references/blocks.md)。
 
 ---
 
@@ -427,26 +427,33 @@ open my-docs/limiter.html
 
 到这一步你已经会手写 `.rmd` 了。但 `.rmd` 真正的价值是让 **AI 直接产出**——你只用提需求，AI 写源文件，你看渲染结果。
 
-仓库里 `skills/` 目录提供两个主流 AI 工具的 skill 包：
+仓库里 `skills/` 用「**单一共享源 + 每个平台一个 JSON 适配器**」组织，目前覆盖 Claude / Codex / Gemini 三个目标：
 
 ```
 skills/
-├── claude/      # Claude Code 用
-└── codex/       # OpenAI Codex 用
+├── shared/                 # 单一真相源（SKILL.md 模板 + references/ + examples/）
+├── platforms/              # 每个 AI 一个 JSON：description、display_name、install_root
+│   ├── claude.json
+│   ├── codex.json
+│   └── gemini.json
+└── dist/                   # 由 `npm run build:skills` 装配出来的可投递产物
+    ├── claude/
+    ├── codex/
+    └── gemini/
 ```
+
+要安装到具体的 AI 客户端，**用 CLI 的 `rmd init` 命令**，它会从 `skills/dist/<platform>/` 把装配好的 skill 投到 AI 的 skill 路径下：
 
 ### 7.1 在 Claude Code 里启用
 
-把 `skills/claude/` 整个目录复制到你的 Claude skills 路径（通常是 `~/.claude/skills/rich-markdown/`）：
-
 ```bash
-mkdir -p ~/.claude/skills
-cp -r skills/claude ~/.claude/skills/rich-markdown
+rmd init --ai claude
+# 等价于把 skills/dist/claude/ 拷到 .claude/skills/rich-markdown/
 ```
 
 然后在 Claude Code 里问它："帮我写一份产品方案对比，用 Rich Markdown 格式"——Claude 会自动调用 skill：
 
-1. 加载 `skills/claude/references/blocks.md` 学到 14 块的语法
+1. 加载 `references/blocks.md` 学到 14 块的语法
 2. 写一份 `.rmd` 到 `examples/<short-name>.rmd`
 3. 跑 `npm run rmd -- validate ...` 验证
 4. 跑 `npm run rmd -- build ... --mode self-contained` 构建
@@ -456,9 +463,23 @@ cp -r skills/claude ~/.claude/skills/rich-markdown
 
 ### 7.2 在 Codex 里启用
 
-同样把 `skills/codex/` 拷到 Codex 的 skill 目录。`skills/codex/agents/openai.yaml` 里有 OpenAI Apps SDK 的配置元数据，会自动注册成可调用的 skill。
+```bash
+rmd init --ai codex
+# 等价于把 skills/dist/codex/ 拷到 .codex/skills/rich-markdown/
+```
 
-### 7.3 验证 skill 真的工作
+### 7.3 在 Gemini 里启用
+
+```bash
+rmd init --ai gemini
+# 等价于把 skills/dist/gemini/ 拷到 .gemini/skills/rich-markdown/
+```
+
+> 想批量安装到所有 AI: `rmd init --ai all`。
+>
+> 想新增其它 AI 工具的支持：在 `skills/platforms/` 下添一个 `<id>.json`（description / display_name / install_root 三个字段），跑一次 `npm run build:skills`，再在 `packages/cli/src/index.js` 的 `PLATFORM_TARGETS` 里注册一行即可。详见 [`skills/README.md`](../skills/README.md)。
+
+### 7.4 验证 skill 真的工作
 
 最简单的检查：让 AI 写一份"三套云服务对比"——好的 AI + 好的 skill 应该输出包含 `:::grid 3` + `:::chart` + `:::callout` + `:::diff` 的 `.rmd`，并自动跑 validate + build。
 
@@ -496,7 +517,7 @@ RMD.render({
 </body></html>
 ```
 
-这就是 [`ARCHITECTURE.md`](./ARCHITECTURE.md) §3.3 里的 **Mode B**——`skills/claude` 的默认输出形态正是这个。token 几乎全部花在 `.rmd` 源文本上（极省），渲染器从 CDN 加载（不计入 token），Claude 桌面版能直接当 HTML artifact 渲染。
+这就是 [`ARCHITECTURE.md`](./ARCHITECTURE.md) §3.3 里的 **Mode B**——`skills/shared/SKILL.md` 装配出的默认输出形态正是这个。token 几乎全部花在 `.rmd` 源文本上（极省），渲染器从 CDN 加载（不计入 token），Claude 桌面版能直接当 HTML artifact 渲染。
 
 ---
 
@@ -583,12 +604,12 @@ esbuild 只在 `npm run build:dist` 时才需要（用来打包浏览器版渲�
 
 **更多手感练习**
 - 拷贝并修改 `examples/v0.2-showcase.rmd`——它一份覆盖了几乎所有 14 个块
-- 拷贝并修改 `skills/claude/examples/decision-report.rmd`——它是真实工作流的复刻
+- 拷贝并修改 `skills/shared/examples/decision-report.rmd`——它是真实工作流的复刻
 
 **给其他工具加 skill**
-- 参考 `skills/claude/SKILL.md` 的 frontmatter 写法
-- 参考 `skills/claude/references/blocks.md` 的简洁块速查
-- 切记 `description` 字段要覆盖触发词
+- 参考 `skills/shared/SKILL.md` 的 frontmatter 写法（模板,占位符在 `skills/platforms/<id>.json` 里赋值）
+- 参考 `skills/shared/references/blocks.md` 的简洁块速查
+- 在 `skills/platforms/` 加一个 `<id>.json`，跑 `npm run build:skills` 就有 `skills/dist/<id>/` —— 切记 `description` 字段要覆盖触发词，详见 [`skills/README.md`](../skills/README.md)
 
 ---
 

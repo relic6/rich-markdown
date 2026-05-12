@@ -307,6 +307,16 @@ body[data-rmd-theme]::before {
   border-color: var(--rmd-color-line);
 }
 
+.rmd-carousel-control {
+  background: rgb(11 18 25 / 0.9);
+  border-color: rgb(92 242 214 / 0.24);
+  color: var(--rmd-color-fg);
+}
+
+.rmd-carousel-dot {
+  background: rgb(223 245 239 / 0.32);
+}
+
 .rmd-embed {
   background: #000;
   box-shadow: 0 0 30px rgb(0 0 0 / 0.6);

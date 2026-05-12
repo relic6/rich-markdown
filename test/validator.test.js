@@ -96,6 +96,14 @@ test("validator permits parser-marked duplicate sliders", () => {
   assert.equal(result.ok, true);
 });
 
+test("validator accepts range slider defaults", () => {
+  const ast = parse(`:::slider name=volume_range min=10 max=1000 step=10 default="100,500"
+:::`); 
+  const result = validate(ast);
+
+  assert.equal(result.ok, true);
+});
+
 test("validator reports nested grid and nested tabs", () => {
   const ast = {
     type: "root",

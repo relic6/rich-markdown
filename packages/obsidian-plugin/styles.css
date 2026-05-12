@@ -120,6 +120,24 @@
   color: var(--interactive-accent);
 }
 
+.rmd-view-theme-select {
+  height: var(--input-height);
+  max-width: 120px;
+  margin-inline-end: 4px;
+  padding: 0 22px 0 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background-color: var(--background-primary);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.rmd-view-theme-select:hover,
+.rmd-view-theme-select:focus {
+  color: var(--text-normal);
+  border-color: var(--interactive-accent);
+}
+
 @media (max-width: 720px) {
   .rmd-view.rmd-mode-split {
     flex-direction: column;

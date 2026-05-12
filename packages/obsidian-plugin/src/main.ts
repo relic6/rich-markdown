@@ -68,9 +68,9 @@ export default class RichMarkdownPlugin extends Plugin {
     });
   }
 
-  getRenderOptions(sourcePath?: string): RenderHostOptions {
+  getRenderOptions(sourcePath?: string, theme: ThemeChoice = this.settings.theme): RenderHostOptions {
     return {
-      ...getThemeRenderOptions(this.settings.theme),
+      ...getThemeRenderOptions(theme),
       resourceSourcePath: sourcePath,
       resolveResourceUrl: (url) => resolveObsidianResourceUrl(this.app.vault, sourcePath, url)
     };

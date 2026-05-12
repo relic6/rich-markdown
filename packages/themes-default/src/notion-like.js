@@ -404,12 +404,11 @@ body[data-rmd-theme] {
   box-shadow: none;
 }
 
-/* Math — soft monospace */
+/* Math — soft display */
 .rmd-math {
   background: var(--rmd-color-surface-strong);
   border: 1px solid var(--rmd-color-line);
   color: var(--rmd-color-fg);
   border-radius: var(--rmd-radius-md);
-  font-family: var(--rmd-font-mono);
 }
 `.trim();

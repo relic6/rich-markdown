@@ -7,36 +7,59 @@
 export const defaultThemeJs = `
 function initRichMarkdownTheme() {
   // Initialize Carousel Autoplay
-  document.querySelectorAll('.rmd-carousel[data-autoplay="true"]').forEach(carousel => {
+  document.querySelectorAll('.rmd-carousel').forEach(carousel => {
     const track = carousel.querySelector('.rmd-carousel-track');
     const interval = parseInt(carousel.getAttribute('data-interval') || '3000', 10);
     if (!track) return;
 
-    let timer = null;
+    const items = Array.from(track.children || []);
+    if (items.length <= 1) return;
+
+    const prev = carousel.querySelector('[data-rmd-carousel="prev"]');
+    const next = carousel.querySelector('[data-rmd-carousel="next"]');
+    const dots = Array.from(carousel.querySelectorAll('.rmd-carousel-dot'));
+    let activeIndex = 0;
     let isHovered = false;
 
-    const play = () => {
-      timer = setInterval(() => {
-        if (isHovered) return;
-        const currentScroll = track.scrollLeft;
-        const maxScroll = track.scrollWidth - track.clientWidth;
-
-        if (currentScroll >= maxScroll - 1) {
-          track.scrollTo({ left: 0, behavior: 'smooth' });
+    const normalizeIndex = (index) => (index + items.length) % items.length;
+    const updateDots = () => {
+      carousel.setAttribute('data-active-index', String(activeIndex));
+      dots.forEach((dot, index) => {
+        if (index === activeIndex) {
+          dot.setAttribute('aria-current', 'true');
         } else {
-          track.scrollBy({ left: track.clientWidth, behavior: 'smooth' });
+          dot.removeAttribute('aria-current');
         }
-      }, interval);
+      });
+    };
+    const goTo = (index, behavior = 'smooth') => {
+      activeIndex = normalizeIndex(index);
+      track.scrollTo({ left: activeIndex * track.clientWidth, behavior });
+      updateDots();
+    };
+    const syncFromScroll = () => {
+      if (!track.clientWidth) return;
+      activeIndex = normalizeIndex(Math.round(track.scrollLeft / track.clientWidth));
+      updateDots();
     };
 
+    prev && prev.addEventListener('click', () => goTo(activeIndex - 1));
+    next && next.addEventListener('click', () => goTo(activeIndex + 1));
+    dots.forEach((dot, index) => dot.addEventListener('click', () => goTo(index)));
+    track.addEventListener('scroll', syncFromScroll);
     carousel.addEventListener('mouseenter', () => isHovered = true);
     carousel.addEventListener('mouseleave', () => isHovered = false);
 
-    play();
+    updateDots();
+    if (carousel.getAttribute('data-autoplay') === 'true') {
+      setInterval(() => {
+        if (!isHovered) goTo(activeIndex + 1);
+      }, interval);
+    }
   });
 
   // Initialize Math via KaTeX (Lazy Load)
-  const mathBlocks = document.querySelectorAll('.rmd-math code.language-latex');
+  const mathBlocks = document.querySelectorAll('.rmd-math-display[data-latex], .rmd-math code.language-latex');
   if (mathBlocks.length > 0) {
     const loadScript = (src) => new Promise((resolve, reject) => {
       const script = document.createElement('script');
@@ -57,12 +80,22 @@ function initRichMarkdownTheme() {
     loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js').then(() => {
       mathBlocks.forEach(block => {
         try {
-          const content = block.textContent;
-          const parent = block.parentElement;
-          if (parent && typeof katex !== 'undefined') {
-            const span = document.createElement('span');
-            katex.render(content, span, { displayMode: true, throwOnError: false });
-            parent.replaceWith(span);
+          const content = block.getAttribute('data-latex') || block.textContent;
+          if (typeof katex === 'undefined') return;
+
+          if (block.classList && block.classList.contains('rmd-math-display')) {
+            katex.render(content, block, { displayMode: true, throwOnError: false });
+            block.setAttribute('data-rendered', 'katex');
+          } else {
+            const parent = block.parentElement;
+            if (parent) {
+              const span = document.createElement('span');
+              span.className = 'rmd-math-display';
+              span.setAttribute('role', 'math');
+              span.setAttribute('data-rendered', 'katex');
+              katex.render(content, span, { displayMode: true, throwOnError: false });
+              parent.replaceWith(span);
+            }
           }
         } catch(e) {
           console.error("KaTeX Error:", e);

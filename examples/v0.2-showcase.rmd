@@ -39,6 +39,23 @@ date: "2026-05-10"
 系统联调与发布
 :::
 
+### 水平时间轴 · 长内容回归测试
+
+> 这一组用来验证：单条内容很长时不会把其他 `@` 区块挤出可视区——长文本会在 240px 的卡片内自动换行，并支持水平滚动浏览全部条目。
+
+:::timeline direction="horizontal"
+@ Day 1 [title="启动" status="success"]
+需求评审会，确认目标与范围。
+@ Day 2 [title="设计" status="success"]
+本阶段完成了用户旅程图、信息架构、关键交互原型、视觉风格定调以及一份较为详尽的设计评审备忘录，并与利益相关方对齐了所有的硬约束（合规、可访问性、跨端一致性）。后续会以双周节奏推进可用性测试与设计资产沉淀，同步把组件库的命名规范固化到 Figma 与代码工程两侧。
+@ Day 3 [title="开发" status="warning"]
+后端 API、前端框架与可观测性接入并行启动。
+@ Day 4 [title="联调"]
+跨域 / 限流 / 重试 / 幂等四件事都需要回归。
+@ Day 5 [title="灰度" status="pending"]
+按地域 1% → 10% → 50% → 100% 的节奏放量。
+:::
+
 ---
 
 ## 2. Kanban (看板)
@@ -140,9 +157,53 @@ v0.2 引入了灵活的多列定义和瀑布流排版能力。
 
 ## 7. 增强图表 (Charts v0.2)
 
-现已支持多种扩展图表及复杂的双 Y 轴与工具提示配置。
+这一节覆盖 `:::chart` 当前契约中的全部 8 种图表类型，便于直接对比渲染效果与降级表现。
 
-### 堆叠面积图 (带图例与副轴)
+### 柱状图 (Bar)
+:::chart bar title="核心包体积对比（KB gzip）" y="KB" legend="none" emphasis="primary"
+Parser 18
+Renderer 12
+Runtime 7
+Theme 4
+:::
+
+### 折线图 (Line)
+:::chart line title="月活用户增长趋势（万）" x="月份" y="MAU" legend="none"
+Jan 42
+Feb 48
+Mar 57
+Apr 66
+May 81
+Jun 96
+:::
+
+### 饼图 (Pie)
+:::chart pie title="文档使用场景占比（%）" legend="right" tooltip="true"
+方案评审 34
+数据报告 28
+产品说明 22
+研究笔记 16
+:::
+
+### 散点图 (Scatter)
+:::chart scatter title="性能与能耗分布模型" x="延迟(ms)" y="能耗(W)"
+Model_A 12 300
+Model_B 15 450
+Model_C 8 150
+Model_D 22 800
+Model_E 18 600
+:::
+
+### 雷达图 (Radar)
+:::chart radar title="AI 输出能力雷达" legend="bottom"
+结构化 92 88
+可读性 86 94
+可视化 78 90
+交互性 71 84
+可维护 89 82
+:::
+
+### 面积图 (Area，带图例与副轴)
 :::chart area title="年度收入与活跃用户走势" y2="活跃用户(万)" legend="top" tooltip="true" emphasis="primary"
 Q1_2025 120 40
 Q2_2025 150 45
@@ -151,13 +212,21 @@ Q4_2025 240 85
 Q1_2026 310 110
 :::
 
-### 散点分布图 (Scatter)
-:::chart scatter title="性能与能耗分布模型"
-Model_A 12 300
-Model_B 15 450
-Model_C 8 150
-Model_D 22 800
-Model_E 18 600
+### 环形图 (Donut)
+:::chart donut title="Token 成本构成（%）" legend="bottom"
+正文 46
+代码 24
+表格 18
+注释 12
+:::
+
+### 热力图 (Heatmap)
+:::chart heatmap title="一周协作热度" x="星期" y="时段" tooltip="true"
+Mon 12 18 24 16
+Tue 10 22 31 20
+Wed 14 26 35 28
+Thu 11 20 29 24
+Fri 9 16 22 18
 :::
 
 ---

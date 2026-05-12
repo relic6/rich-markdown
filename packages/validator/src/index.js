@@ -297,7 +297,13 @@ function validateSlider(node, path, errors, context) {
   requireNumber(node.min, `${path}/min`, errors);
   requireNumber(node.max, `${path}/max`, errors);
   requireNumber(node.step, `${path}/step`, errors);
-  requireNumber(node.default, `${path}/default`, errors);
+  if (Array.isArray(node.default)) {
+    if (node.default.length !== 2 || node.default.some(v => typeof v !== "number" || Number.isNaN(v))) {
+      add(errors, `${path}/default`, "slider range default must be two numbers");
+    }
+  } else {
+    requireNumber(node.default, `${path}/default`, errors);
+  }
 
   if (typeof node.min === "number" && typeof node.max === "number" && node.max <= node.min) {
     add(errors, `${path}/max`, "slider max must be greater than min");

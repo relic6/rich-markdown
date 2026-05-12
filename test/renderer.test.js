@@ -20,6 +20,71 @@ test("renders the quickstart example to stable semantic HTML", () => {
   assert.match(html, /rmd-diff-add/);
 });
 
+test("renders each chart type with type-specific SVG geometry", () => {
+  const cases = [
+    ["bar", "A 10\nB 20", /<rect\b/],
+    ["line", "A 10\nB 20\nC 15", /<polyline\b/],
+    ["pie", "A 40\nB 35\nC 25", /<path\b/],
+    ["scatter", "A 1 8\nB 2 5\nC 3 12", /<circle\b/],
+    ["radar", "A 80 70\nB 60 90\nC 75 65", /<polygon\b/],
+    ["area", "A 10\nB 20\nC 15", /<path\b[^>]*class="rmd-chart-area-fill"/],
+    ["donut", "A 40\nB 35\nC 25", /<circle\b[^>]*class="rmd-chart-donut-hole"/],
+    ["heatmap", "Mon 1 2\nTue 3 4", /data-series-index="1"/]
+  ];
+
+  for (const [type, data, expectedGeometry] of cases) {
+    const html = renderFragmentToString(`:::chart ${type} title="${type}"\n${data}\n:::`);
+
+    assert.match(html, new RegExp(`rmd-chart-${type}`));
+    assert.match(html, expectedGeometry);
+  }
+});
+
+test("renders range sliders as paired range inputs", () => {
+  const html = renderFragmentToString(`:::slider name=volume_range label="Range" min=10 max=1000 step=10 default="100,500" unit="QPS"
+:::`); 
+
+  assert.match(html, /data-range="true"/);
+  assert.match(html, /class="rmd-slider-range-control"/);
+  assert.match(html, /class="rmd-slider-range-track"/);
+  assert.match(html, /--rmd-range-start: 9\.09%/);
+  assert.match(html, /--rmd-range-end: 49\.49%/);
+  assert.match(html, /data-bound="min"/);
+  assert.match(html, /data-bound="max"/);
+  assert.match(html, /value="100"/);
+  assert.match(html, /value="500"/);
+  assert.match(html, />100 - 500 QPS<\/output>/);
+});
+
+test("renders math blocks as formula displays instead of code blocks", () => {
+  const html = renderFragmentToString(`:::math
+E = mc^2
+:::`);
+
+  assert.match(html, /data-rmd-block="math"/);
+  assert.match(html, /class="rmd-math-display"/);
+  assert.match(html, /role="math"/);
+  assert.match(html, /data-latex="E = mc\^2"/);
+  assert.match(html, />E = mc\^2<\/div>/);
+  assert.doesNotMatch(html, /<pre><code class="language-latex">/);
+});
+
+test("renders carousel controls and slide indicators", () => {
+  const html = renderFragmentToString(`:::carousel autoplay="true" interval="1200"
+First
+---
+Second
+:::`); 
+
+  assert.match(html, /data-rmd-block="carousel"/);
+  assert.match(html, /data-autoplay="true"/);
+  assert.match(html, /data-rmd-carousel="prev"/);
+  assert.match(html, /data-rmd-carousel="next"/);
+  assert.match(html, /class="rmd-carousel-dot"/);
+  assert.match(html, /aria-current="true"/);
+  assert.match(html, /aria-label="Go to slide 2"/);
+});
+
 test("escapes user-controlled content in rendered HTML", () => {
   const ast = parse(`# <script>alert(1)</script>
 

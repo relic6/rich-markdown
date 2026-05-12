@@ -4,7 +4,7 @@ import type { RmdDisplayMode, RmdSettings, ThemeChoice } from "./types";
 
 export const DEFAULT_SETTINGS: RmdSettings = {
   theme: "auto",
-  defaultMode: "live",
+  defaultMode: "split",
   debounceMs: 150,
   enableInMarkdown: true
 };

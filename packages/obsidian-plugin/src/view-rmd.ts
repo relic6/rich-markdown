@@ -2,10 +2,11 @@ import { setIcon, TextFileView, WorkspaceLeaf } from "obsidian";
 import { EditorState, type Extension } from "@codemirror/state";
 import { drawSelection, EditorView } from "@codemirror/view";
 import type RichMarkdownPlugin from "./main";
-import type { RmdDisplayMode, RmdSettings } from "./types";
+import type { RmdDisplayMode, RmdSettings, ThemeChoice } from "./types";
 import { rmdLiveExtension } from "./live-preview";
 import { createRmdHost, updateRmdHost } from "./view-renderer";
 import { annotateRenderedSource, buildSourceMap } from "./source-map.js";
+import { readDocumentThemeChoice, THEME_CHOICES, writeDocumentThemeChoice } from "./theme-frontmatter.js";
 
 export const RMD_VIEW_TYPE = "rich-markdown-view";
 
@@ -18,11 +19,13 @@ export class RmdView extends TextFileView {
   private sourceData = "";
   private syncingScroll = false;
   private modeToggleEl: HTMLElement | null = null;
+  private themeSelectEl: HTMLSelectElement | null = null;
 
   constructor(leaf: WorkspaceLeaf, private readonly plugin: RichMarkdownPlugin) {
     super(leaf);
     this.displayMode = plugin.settings.defaultMode;
     this.addModeToggleAction();
+    this.addThemeSelectAction();
   }
 
   getViewType() {
@@ -56,6 +59,7 @@ export class RmdView extends TextFileView {
     }
     this.requestRender();
     this.updateModeToggle();
+    this.updateThemeSelect();
   }
 
   clear(): void {
@@ -95,6 +99,7 @@ export class RmdView extends TextFileView {
       this.sourceData = current;
       this.mountUi();
     }
+    this.updateThemeSelect();
     this.requestRender();
   }
 
@@ -153,6 +158,7 @@ export class RmdView extends TextFileView {
           }
 
           this.sourceData = update.state.doc.toString();
+          this.updateThemeSelect();
           this.requestRender();
           this.requestSave();
         }),
@@ -201,6 +207,59 @@ export class RmdView extends TextFileView {
     this.setDisplayMode(MODE_CYCLE[this.displayMode]);
   }
 
+  private addThemeSelectAction() {
+    const select = document.createElement("select");
+    select.className = "rmd-view-theme-select";
+    select.setAttribute("aria-label", "Rich Markdown theme");
+    select.title = "Rich Markdown theme";
+
+    for (const choice of THEME_CHOICES) {
+      const option = document.createElement("option");
+      option.value = choice;
+      option.textContent = themeLabel(choice);
+      select.append(option);
+    }
+
+    select.addEventListener("change", () => {
+      void this.setDocumentTheme(select.value as ThemeChoice);
+    });
+
+    this.themeSelectEl = select;
+    this.modeToggleEl?.parentElement?.insertBefore(select, this.modeToggleEl);
+    this.updateThemeSelect();
+  }
+
+  private updateThemeSelect() {
+    if (!this.themeSelectEl) {
+      return;
+    }
+
+    this.themeSelectEl.value = this.currentThemeChoice();
+  }
+
+  private currentThemeChoice(): ThemeChoice {
+    return (readDocumentThemeChoice(this.getViewData()) ?? this.plugin.settings.theme) as ThemeChoice;
+  }
+
+  private async setDocumentTheme(theme: ThemeChoice) {
+    const current = this.getViewData();
+    const next = writeDocumentThemeChoice(current, theme);
+    if (next === current) {
+      this.updateThemeSelect();
+      this.requestRender();
+      return;
+    }
+
+    this.sourceData = next;
+    if (this.editor) {
+      this.replaceEditorDocument(next);
+    } else {
+      this.requestSave();
+      this.requestRender();
+    }
+    this.updateThemeSelect();
+  }
+
   private replaceEditorDocument(data: string) {
     if (!this.editor) {
       return;
@@ -243,7 +302,7 @@ export class RmdView extends TextFileView {
   }
 
   private getRenderOptions() {
-    return this.plugin.getRenderOptions(this.file?.path);
+    return this.plugin.getRenderOptions(this.file?.path, this.currentThemeChoice());
   }
 
   private annotatePreview() {
@@ -314,6 +373,17 @@ export class RmdView extends TextFileView {
     window.requestAnimationFrame(() => {
       this.syncingScroll = false;
     });
+  }
+}
+
+function themeLabel(choice: string): string {
+  switch (choice) {
+    case "auto": return "Auto";
+    case "default": return "Default";
+    case "tech-dark": return "Tech Dark";
+    case "paper": return "Paper";
+    case "notion-like": return "Notion-like";
+    default: return choice;
   }
 }
 

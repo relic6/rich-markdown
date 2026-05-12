@@ -388,6 +388,5 @@ body[data-rmd-theme] {
   border: 1px solid var(--rmd-color-line);
   color: var(--rmd-color-fg);
   border-radius: 2px;
-  font-family: var(--rmd-font-mono);
 }
 `.trim();

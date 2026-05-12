@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rich Markdown v0.2 Showcase</title>
-  <style>
+<style data-rmd-theme-inline="default">
 :root {
   --rmd-color-page: #f5f7f4;
   --rmd-color-bg: #fbfcf8;
@@ -336,6 +336,53 @@ body[data-rmd-theme] {
   cursor: pointer;
 }
 
+.rmd-slider[data-range="true"] {
+  grid-template-columns: minmax(150px, 1.1fr) minmax(220px, 3fr) minmax(112px, auto);
+}
+
+.rmd-slider-range-control {
+  position: relative;
+  min-height: 32px;
+  display: grid;
+  align-items: center;
+  isolation: isolate;
+}
+
+.rmd-slider-range-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 8px;
+  border: 1px solid rgb(23 107 114 / 0.16);
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(23 107 114 / 0.12) 0%,
+      rgb(23 107 114 / 0.12) var(--rmd-range-start, 0%),
+      var(--rmd-color-primary) var(--rmd-range-start, 0%),
+      var(--rmd-color-primary) var(--rmd-range-end, 100%),
+      rgb(23 107 114 / 0.12) var(--rmd-range-end, 100%),
+      rgb(23 107 114 / 0.12) 100%
+    );
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.rmd-slider-range-control input[type="range"] {
+  grid-area: 1 / 1;
+  position: relative;
+  margin: 0;
+  background: transparent;
+  z-index: 1;
+}
+
+.rmd-slider-range-control input[type="range"][data-bound="max"] {
+  z-index: 2;
+}
+
 .rmd-slider input[type="range"]:focus-visible,
 .rmd-export button:focus-visible,
 .rmd-tabs [role="tab"]:focus-visible {
@@ -487,6 +534,10 @@ body[data-rmd-theme] {
     justify-self: start;
   }
 
+  .rmd-slider[data-range="true"] {
+    grid-template-columns: 1fr;
+  }
+
   .rmd-document h1 {
     font-size: 32px;
   }
@@ -555,26 +606,66 @@ body[data-rmd-theme] {
 
 .rmd-timeline-horizontal ol {
   display: flex;
+  flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 20px;
-  padding-bottom: 10px;
+  overflow-y: hidden;
+  gap: 24px;
+  padding-bottom: 12px;
+  /* Treat the ol as a horizontal scroll viewport with explicit snap so
+     each @item lines up nicely when the user scrolls. */
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
 }
 
 .rmd-timeline-horizontal .rmd-timeline-item {
-  flex: 0 0 auto;
-  min-width: 200px;
+  /* Cap each item to a predictable width so a single overflowing item
+     can't squeeze siblings out of the visible viewport. Long prose
+     wraps inside the box; the user scrolls horizontally to see the
+     next item. */
+  flex: 0 0 240px;
+  width: 240px;
+  max-width: 240px;
   position: relative;
   padding-top: 28px;
+  scroll-snap-align: start;
+  /* Prevent runaway content (long URLs, code, CJK without spaces) from
+     widening the flex item beyond its declared basis. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-.rmd-timeline-horizontal ol::before {
+.rmd-timeline-horizontal .rmd-timeline-content {
+  /* Belt-and-suspenders: cap inner content too, in case authors nest
+     wide blocks (chart, table) inside a timeline item. */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.rmd-timeline-horizontal .rmd-timeline-content pre,
+.rmd-timeline-horizontal .rmd-timeline-content img,
+.rmd-timeline-horizontal .rmd-timeline-content table {
+  max-width: 100%;
+}
+
+/* The connector line is drawn per-item (::after) so that it scrolls with
+   the items inside the overflow:auto container. The previous ol::before
+   approach anchored the line to the visible viewport, which made the
+   line stay put while items scrolled past — broken for any timeline
+   wider than the viewport. */
+.rmd-timeline-horizontal .rmd-timeline-item::after {
   position: absolute;
   top: 5px;
-  left: 0;
-  right: 0;
+  left: 6px;
+  /* Extend across the 24px gap to meet the next item's dot. */
+  right: calc(-24px + 6px);
   height: 2px;
   background: var(--rmd-color-line);
   content: "";
+}
+
+.rmd-timeline-horizontal .rmd-timeline-item:last-child::after {
+  display: none;
 }
 
 .rmd-timeline-horizontal .rmd-timeline-item::before {
@@ -780,6 +871,66 @@ body[data-rmd-theme] {
   padding: 24px;
 }
 
+.rmd-carousel-control {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgb(23 107 114 / 0.18);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.88);
+  color: var(--rmd-color-fg);
+  box-shadow: var(--rmd-shadow-sm);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.rmd-carousel-control:hover {
+  border-color: var(--rmd-color-primary);
+  color: var(--rmd-color-primary);
+}
+
+.rmd-carousel-prev {
+  left: 12px;
+}
+
+.rmd-carousel-next {
+  right: 12px;
+}
+
+.rmd-carousel-control span {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.rmd-carousel-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+
+.rmd-carousel-dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(32 37 31 / 0.28);
+  cursor: pointer;
+}
+
+.rmd-carousel-dot[aria-current="true"] {
+  width: 22px;
+  background: var(--rmd-color-primary);
+}
+
 /* Embed */
 .rmd-embed {
   position: relative;
@@ -801,20 +952,29 @@ body[data-rmd-theme] {
 .rmd-math {
   display: block;
   overflow-x: auto;
-  padding: 18px 24px;
+  padding: 22px 24px;
   background: rgb(23 107 114 / 0.04);
   border-radius: var(--rmd-radius-md);
   border: 1px solid rgb(23 107 114 / 0.12);
   color: var(--rmd-color-fg);
-  font-family: var(--rmd-font-mono);
-  font-size: 15px;
   text-align: center;
 }
 
-.rmd-math pre {
-  margin: 0;
+.rmd-math-display {
+  min-width: max-content;
+  font-family: "STIX Two Math", "Cambria Math", "Times New Roman", serif;
+  font-size: clamp(20px, 2.2vw, 30px);
+  font-style: italic;
+  line-height: 1.6;
+  letter-spacing: 0;
+  white-space: pre-wrap;
 }
-  </style>
+
+.rmd-math-display[data-rendered="katex"] {
+  font-style: normal;
+  min-width: 0;
+}
+</style>
 </head>
 <body data-rmd-theme="default">
 <main class="rmd-document" data-rmd-version="0.1.0">
@@ -826,6 +986,9 @@ body[data-rmd-theme] {
 <section class="rmd-block rmd-timeline rmd-timeline-vertical" data-rmd-block="timeline" data-direction="vertical"><ol><li class="rmd-timeline-item rmd-timeline-status-success"><div class="rmd-timeline-time">2026-01-01</div><div class="rmd-timeline-content"><h4>项目立项</h4><p>项目的初步规划完成，团队组建完毕。</p></div></li><li class="rmd-timeline-item rmd-timeline-status-success"><div class="rmd-timeline-time">2026-03-15</div><div class="rmd-timeline-content"><h4>v0.1 发布</h4><p>完成核心解析器的基础架构。</p></div></li><li class="rmd-timeline-item rmd-timeline-status-pending"><div class="rmd-timeline-time">2026-05-10</div><div class="rmd-timeline-content"><h4>v0.2 扩展升级</h4><p>新增高级互动组件、优化 CSS 瀑布流和交互，合规性测试全覆盖。</p></div></li><li class="rmd-timeline-item"><div class="rmd-timeline-time">2026-12-01</div><div class="rmd-timeline-content"><h4>开源 1.0 正式版</h4><p>计划在此时间点开放完整源码库及周边生态。</p></div></li></ol></section>
 <h3>水平时间轴</h3>
 <section class="rmd-block rmd-timeline rmd-timeline-horizontal" data-rmd-block="timeline" data-direction="horizontal"><ol><li class="rmd-timeline-item rmd-timeline-status-success"><div class="rmd-timeline-time">阶段一</div><div class="rmd-timeline-content"><p>需求分析与设计</p></div></li><li class="rmd-timeline-item rmd-timeline-status-warning"><div class="rmd-timeline-time">阶段二</div><div class="rmd-timeline-content"><p>高可用架构开发</p></div></li><li class="rmd-timeline-item rmd-timeline-status-danger"><div class="rmd-timeline-time">阶段三</div><div class="rmd-timeline-content"><p>遇到技术难点与回退</p></div></li><li class="rmd-timeline-item rmd-timeline-status-pending"><div class="rmd-timeline-time">阶段四</div><div class="rmd-timeline-content"><p>系统联调与发布</p></div></li></ol></section>
+<h3>水平时间轴 · 长内容回归测试</h3>
+<blockquote><p>这一组用来验证：单条内容很长时不会把其他 <code>@</code> 区块挤出可视区——长文本会在 240px 的卡片内自动换行，并支持水平滚动浏览全部条目。</p></blockquote>
+<section class="rmd-block rmd-timeline rmd-timeline-horizontal" data-rmd-block="timeline" data-direction="horizontal"><ol><li class="rmd-timeline-item rmd-timeline-status-success"><div class="rmd-timeline-time">Day 1</div><div class="rmd-timeline-content"><h4>启动</h4><p>需求评审会，确认目标与范围。</p></div></li><li class="rmd-timeline-item rmd-timeline-status-success"><div class="rmd-timeline-time">Day 2</div><div class="rmd-timeline-content"><h4>设计</h4><p>本阶段完成了用户旅程图、信息架构、关键交互原型、视觉风格定调以及一份较为详尽的设计评审备忘录，并与利益相关方对齐了所有的硬约束（合规、可访问性、跨端一致性）。后续会以双周节奏推进可用性测试与设计资产沉淀，同步把组件库的命名规范固化到 Figma 与代码工程两侧。</p></div></li><li class="rmd-timeline-item rmd-timeline-status-warning"><div class="rmd-timeline-time">Day 3</div><div class="rmd-timeline-content"><h4>开发</h4><p>后端 API、前端框架与可观测性接入并行启动。</p></div></li><li class="rmd-timeline-item"><div class="rmd-timeline-time">Day 4</div><div class="rmd-timeline-content"><h4>联调</h4><p>跨域 / 限流 / 重试 / 幂等四件事都需要回归。</p></div></li><li class="rmd-timeline-item rmd-timeline-status-pending"><div class="rmd-timeline-time">Day 5</div><div class="rmd-timeline-content"><h4>灰度</h4><p>按地域 1% → 10% → 50% → 100% 的节奏放量。</p></div></li></ol></section>
 <hr>
 <h2>2. Kanban (看板)</h2>
 <p>将信息以列状泳道聚合，适用于任务管理、多栏内容对比等信息流。</p>
@@ -833,13 +996,13 @@ body[data-rmd-theme] {
 <hr>
 <h2>3. Carousel (轮播交互)</h2>
 <p>使用原生 CSS Scroll Snap 特性实现的丝滑手势交互分屏组件。</p>
-<section class="rmd-block rmd-carousel" data-rmd-block="carousel" data-autoplay="true" data-interval="4000"><div class="rmd-carousel-track"><div class="rmd-carousel-item" role="group" aria-roledescription="slide" aria-label="1 of 3"><h3>特性一：全原生驱动</h3>
+<section class="rmd-block rmd-carousel" data-rmd-block="carousel" data-active-index="0" data-autoplay="true" data-interval="4000"><div class="rmd-carousel-track"><div class="rmd-carousel-item" role="group" aria-roledescription="slide" aria-label="1 of 3"><h3>特性一：全原生驱动</h3>
 <p>没有复杂的 DOM 操作，只需手势或触控板轻轻一划。</p>
 <p><img src="https://picsum.photos/800/300?random=1" alt="Carousel Image 1"></p></div><div class="rmd-carousel-item" role="group" aria-roledescription="slide" aria-label="2 of 3"><h3>特性二：响应式适配</h3>
 <p>不论是移动端还是桌面端，都能保证中心对齐和整屏滚动。</p>
 <p><img src="https://picsum.photos/800/300?random=2" alt="Carousel Image 2"></p></div><div class="rmd-carousel-item" role="group" aria-roledescription="slide" aria-label="3 of 3"><h3>特性三：优雅的玻璃拟物</h3>
 <p>继承了默认主题精雕细琢的柔和边框与高级渐变投影体系。</p>
-<p><img src="https://picsum.photos/800/300?random=3" alt="Carousel Image 3"></p></div></div></section>
+<p><img src="https://picsum.photos/800/300?random=3" alt="Carousel Image 3"></p></div></div><button type="button" class="rmd-carousel-control rmd-carousel-prev" data-rmd-carousel="prev" aria-label="Previous slide"><span aria-hidden="true">&lsaquo;</span></button><button type="button" class="rmd-carousel-control rmd-carousel-next" data-rmd-carousel="next" aria-label="Next slide"><span aria-hidden="true">&rsaquo;</span></button><div class="rmd-carousel-dots" aria-label="Carousel slides"><button type="button" class="rmd-carousel-dot" data-rmd-carousel-index="0" aria-label="Go to slide 1" aria-current="true"></button><button type="button" class="rmd-carousel-dot" data-rmd-carousel-index="1" aria-label="Go to slide 2"></button><button type="button" class="rmd-carousel-dot" data-rmd-carousel-index="2" aria-label="Go to slide 3"></button></div></section>
 <hr>
 <h2>4. Details (智能折叠面板)</h2>
 <p>原生 <code>&lt;details&gt;</code> 封装，自动携带过渡动画，非常适合存放长篇幅备注或次要内容。</p>
@@ -850,7 +1013,7 @@ body[data-rmd-theme] {
 <h3>Bilibili / YouTube 嵌入</h3>
 <section class="rmd-block rmd-embed rmd-embed-video" data-rmd-block="embed" style="--rmd-aspect-ratio: 16/9"><iframe title="Embed" src="about:blank" data-src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen loading="lazy"></iframe></section>
 <h3>LaTeX 数学公式</h3>
-<section class="rmd-block rmd-math" data-rmd-block="math"><pre><code class="language-latex">\mathcal{L} = \sum_{i=1}^{N} \left( y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i) \right) + \frac{\lambda}{2} \|\mathbf{w}\|_2^2</code></pre></section>
+<section class="rmd-block rmd-math" data-rmd-block="math"><div class="rmd-math-display" role="math" aria-label="\mathcal{L} = \sum_{i=1}^{N} \left( y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i) \right) + \frac{\lambda}{2} \|\mathbf{w}\|_2^2" data-latex="\mathcal{L} = \sum_{i=1}^{N} \left( y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i) \right) + \frac{\lambda}{2} \|\mathbf{w}\|_2^2">\mathcal{L} = \sum_{i=1}^{N} \left( y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i) \right) + \frac{\lambda}{2} \|\mathbf{w}\|_2^2</div></section>
 <hr>
 <h2>6. Grid (网格与瀑布流)</h2>
 <p>v0.2 引入了灵活的多列定义和瀑布流排版能力。</p>
@@ -866,20 +1029,32 @@ body[data-rmd-theme] {
 :::</p>
 <hr>
 <h2>7. 增强图表 (Charts v0.2)</h2>
-<p>现已支持多种扩展图表及复杂的双 Y 轴与工具提示配置。</p>
-<h3>堆叠面积图 (带图例与副轴)</h3>
-<section class="rmd-block rmd-chart rmd-chart-area" data-rmd-block="chart" data-y2="活跃用户(万)" data-legend="top"><h3 class="rmd-block-title">年度收入与活跃用户走势</h3><svg role="img" viewBox="0 0 368 190" class="rmd-chart-svg"><title>年度收入与活跃用户走势</title><desc>Q1_2025: 120, 40; Q2_2025: 150, 45; Q3_2025: 180, 60; Q4_2025: 240, 85; Q1_2026: 310, 110</desc><g class="rmd-chart-point" data-label="Q1_2025" data-value="120"><rect x="24" y="104" width="36" height="46" rx="4"></rect><text x="42" y="170" text-anchor="middle">Q1_2025</text><text x="42" y="96" text-anchor="middle">120</text></g><g class="rmd-chart-point" data-label="Q2_2025" data-value="150"><rect x="88" y="92" width="36" height="58" rx="4"></rect><text x="106" y="170" text-anchor="middle">Q2_2025</text><text x="106" y="84" text-anchor="middle">150</text></g><g class="rmd-chart-point" data-label="Q3_2025" data-value="180"><rect x="152" y="80" width="36" height="70" rx="4"></rect><text x="170" y="170" text-anchor="middle">Q3_2025</text><text x="170" y="72" text-anchor="middle">180</text></g><g class="rmd-chart-point" data-label="Q4_2025" data-value="240"><rect x="216" y="57" width="36" height="93" rx="4"></rect><text x="234" y="170" text-anchor="middle">Q4_2025</text><text x="234" y="49" text-anchor="middle">240</text></g><g class="rmd-chart-point" data-label="Q1_2026" data-value="310"><rect x="280" y="30" width="36" height="120" rx="4"></rect><text x="298" y="170" text-anchor="middle">Q1_2026</text><text x="298" y="22" text-anchor="middle">310</text></g></svg></section>
-<h3>散点分布图 (Scatter)</h3>
-<section class="rmd-block rmd-chart rmd-chart-scatter" data-rmd-block="chart" data-legend="bottom"><h3 class="rmd-block-title">性能与能耗分布模型</h3><svg role="img" viewBox="0 0 368 190" class="rmd-chart-svg"><title>性能与能耗分布模型</title><desc>Model_A: 12, 300; Model_B: 15, 450; Model_C: 8, 150; Model_D: 22, 800; Model_E: 18, 600</desc><g class="rmd-chart-point" data-label="Model_A" data-value="12"><rect x="24" y="146" width="36" height="4" rx="4"></rect><text x="42" y="170" text-anchor="middle">Model_A</text><text x="42" y="138" text-anchor="middle">12</text></g><g class="rmd-chart-point" data-label="Model_B" data-value="15"><rect x="88" y="146" width="36" height="4" rx="4"></rect><text x="106" y="170" text-anchor="middle">Model_B</text><text x="106" y="138" text-anchor="middle">15</text></g><g class="rmd-chart-point" data-label="Model_C" data-value="8"><rect x="152" y="146" width="36" height="4" rx="4"></rect><text x="170" y="170" text-anchor="middle">Model_C</text><text x="170" y="138" text-anchor="middle">8</text></g><g class="rmd-chart-point" data-label="Model_D" data-value="22"><rect x="216" y="146" width="36" height="4" rx="4"></rect><text x="234" y="170" text-anchor="middle">Model_D</text><text x="234" y="138" text-anchor="middle">22</text></g><g class="rmd-chart-point" data-label="Model_E" data-value="18"><rect x="280" y="146" width="36" height="4" rx="4"></rect><text x="298" y="170" text-anchor="middle">Model_E</text><text x="298" y="138" text-anchor="middle">18</text></g></svg></section>
+<p>这一节覆盖 <code>:::chart</code> 当前契约中的全部 8 种图表类型，便于直接对比渲染效果与降级表现。</p>
+<h3>柱状图 (Bar)</h3>
+<section class="rmd-block rmd-chart rmd-chart-bar" data-rmd-block="chart" data-legend="none"><h3 class="rmd-block-title">核心包体积对比（KB gzip）</h3><svg role="img" viewBox="0 0 324 220" class="rmd-chart-svg"><title>核心包体积对比（KB gzip）</title><desc>Parser: 18; Renderer: 12; Runtime: 7; Theme: 4</desc><g class="rmd-chart-point" data-label="Parser" data-value="18"><rect x="50" y="26" width="36" height="132" rx="4"></rect><text x="68.2" y="190" text-anchor="middle">Parser</text><text x="68.2" y="18" text-anchor="middle">18</text></g><g class="rmd-chart-point" data-label="Renderer" data-value="12"><rect x="115" y="70" width="36" height="88" rx="4"></rect><text x="133.2" y="190" text-anchor="middle">Renderer</text><text x="133.2" y="62" text-anchor="middle">12</text></g><g class="rmd-chart-point" data-label="Runtime" data-value="7"><rect x="180" y="107" width="36" height="51" rx="4"></rect><text x="198.2" y="190" text-anchor="middle">Runtime</text><text x="198.2" y="99" text-anchor="middle">7</text></g><g class="rmd-chart-point" data-label="Theme" data-value="4"><rect x="245" y="129" width="36" height="29" rx="4"></rect><text x="263.2" y="190" text-anchor="middle">Theme</text><text x="263.2" y="121" text-anchor="middle">4</text></g></svg></section>
+<h3>折线图 (Line)</h3>
+<section class="rmd-block rmd-chart rmd-chart-line" data-rmd-block="chart" data-legend="none"><h3 class="rmd-block-title">月活用户增长趋势（万）</h3><svg role="img" viewBox="0 0 440 220" class="rmd-chart-svg"><title>月活用户增长趋势（万）</title><desc>Jan: 42; Feb: 48; Mar: 57; Apr: 66; May: 81; Jun: 96</desc><line x1="36" y1="158" x2="412" y2="158" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><line x1="36" y1="26" x2="36" y2="158" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><text x="224" y="212" text-anchor="middle">月份</text><text x="12" y="34" text-anchor="start">MAU</text><polyline class="rmd-chart-line-path" points="36,100 111,92 186,80 262,67 337,47 412,26" fill="none" stroke="var(--rmd-color-primary, #176b72)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline><g class="rmd-chart-point" data-label="Jan" data-value="42" data-series-index="0"><circle cx="36" cy="100" r="4" style="fill: var(--rmd-color-primary, #176b72)"></circle></g><g class="rmd-chart-point" data-label="Feb" data-value="48" data-series-index="0"><circle cx="111" cy="92" r="4" style="fill: var(--rmd-color-primary, #176b72)"></circle></g><g class="rmd-chart-point" data-label="Mar" data-value="57" data-series-index="0"><circle cx="186" cy="80" r="4" style="fill: var(--rmd-color-primary, #176b72)"></circle></g><g class="rmd-chart-point" data-label="Apr" data-value="66" data-series-index="0"><circle cx="262" cy="67" r="4" style="fill: var(--rmd-color-primary, #176b72)"></circle></g><g class="rmd-chart-point" data-label="May" data-value="81" data-series-index="0"><circle cx="337" cy="47" r="4" style="fill: var(--rmd-color-primary, #176b72)"></circle></g><g class="rmd-chart-point" data-label="Jun" data-value="96" data-series-index="0"><circle cx="412" cy="26" r="4" style="fill: var(--rmd-color-primary, #176b72)"></circle></g><text x="36" y="190" text-anchor="middle">Jan</text><text x="111" y="190" text-anchor="middle">Feb</text><text x="186" y="190" text-anchor="middle">Mar</text><text x="262" y="190" text-anchor="middle">Apr</text><text x="337" y="190" text-anchor="middle">May</text><text x="412" y="190" text-anchor="middle">Jun</text></svg></section>
+<h3>饼图 (Pie)</h3>
+<section class="rmd-block rmd-chart rmd-chart-pie" data-rmd-block="chart" data-legend="right"><h3 class="rmd-block-title">文档使用场景占比（%）</h3><svg role="img" viewBox="0 0 360 220" class="rmd-chart-svg"><title>文档使用场景占比（%）</title><desc>方案评审: 34; 数据报告: 28; 产品说明: 22; 研究笔记: 16</desc><g class="rmd-chart-point" data-label="方案评审" data-value="34"><path d="M 132,104 L 170.58,43.21 A 72,72 0 0 0 60,104 Z" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.88"></path><text x="85.75" y="19.87" text-anchor="middle">方案评审</text></g><g class="rmd-chart-point" data-label="数据报告" data-value="28"><path d="M 132,104 L 184.49,153.29 A 72,72 0 0 0 170.58,43.21 Z" style="fill: var(--rmd-color-accent, #c8523e); opacity: 0.88"></path><text x="227.24" y="91.97" text-anchor="middle">数据报告</text></g><g class="rmd-chart-point" data-label="产品说明" data-value="22"><path d="M 132,104 L 93.42,164.79 A 72,72 0 0 0 184.49,153.29 Z" style="fill: var(--rmd-color-info, #3867a8); opacity: 0.88"></path><text x="144.03" y="199.24" text-anchor="middle">产品说明</text></g><g class="rmd-chart-point" data-label="研究笔记" data-value="16"><path d="M 132,104 L 60,104 A 72,72 0 0 0 93.42,164.79 Z" style="fill: var(--rmd-color-success, #2f7d4f); opacity: 0.88"></path><text x="47.87" y="150.25" text-anchor="middle">研究笔记</text></g><g class="rmd-chart-legend-item"><rect x="240" y="40" width="10" height="10" rx="2" style="fill: var(--rmd-color-primary, #176b72)"></rect><text x="256" y="50" text-anchor="start">方案评审</text></g><g class="rmd-chart-legend-item"><rect x="240" y="60" width="10" height="10" rx="2" style="fill: var(--rmd-color-accent, #c8523e)"></rect><text x="256" y="70" text-anchor="start">数据报告</text></g><g class="rmd-chart-legend-item"><rect x="240" y="80" width="10" height="10" rx="2" style="fill: var(--rmd-color-info, #3867a8)"></rect><text x="256" y="90" text-anchor="start">产品说明</text></g><g class="rmd-chart-legend-item"><rect x="240" y="100" width="10" height="10" rx="2" style="fill: var(--rmd-color-success, #2f7d4f)"></rect><text x="256" y="110" text-anchor="start">研究笔记</text></g></svg></section>
+<h3>散点图 (Scatter)</h3>
+<section class="rmd-block rmd-chart rmd-chart-scatter" data-rmd-block="chart" data-legend="bottom"><h3 class="rmd-block-title">性能与能耗分布模型</h3><svg role="img" viewBox="0 0 382 220" class="rmd-chart-svg"><title>性能与能耗分布模型</title><desc>Model_A: 12, 300; Model_B: 15, 450; Model_C: 8, 150; Model_D: 22, 800; Model_E: 18, 600</desc><line x1="36" y1="158" x2="354" y2="158" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><line x1="36" y1="26" x2="36" y2="158" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><text x="195" y="212" text-anchor="middle">延迟(ms)</text><text x="12" y="34" text-anchor="start">能耗(W)</text><g class="rmd-chart-point" data-label="Model_A" data-value="12,300"><circle cx="127" cy="128" r="6" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.86"></circle><text x="127" y="118" text-anchor="middle">Model_A</text></g><g class="rmd-chart-point" data-label="Model_B" data-value="15,450"><circle cx="195" cy="97" r="6" style="fill: var(--rmd-color-accent, #c8523e); opacity: 0.86"></circle><text x="195" y="87" text-anchor="middle">Model_B</text></g><g class="rmd-chart-point" data-label="Model_C" data-value="8,150"><circle cx="36" cy="158" r="6" style="fill: var(--rmd-color-info, #3867a8); opacity: 0.86"></circle><text x="36" y="148" text-anchor="middle">Model_C</text></g><g class="rmd-chart-point" data-label="Model_D" data-value="22,800"><circle cx="354" cy="26" r="6" style="fill: var(--rmd-color-success, #2f7d4f); opacity: 0.86"></circle><text x="354" y="36" text-anchor="middle">Model_D</text></g><g class="rmd-chart-point" data-label="Model_E" data-value="18,600"><circle cx="263" cy="67" r="6" style="fill: var(--rmd-color-warning, #a36a1c); opacity: 0.86"></circle><text x="263" y="57" text-anchor="middle">Model_E</text></g></svg></section>
+<h3>雷达图 (Radar)</h3>
+<section class="rmd-block rmd-chart rmd-chart-radar" data-rmd-block="chart" data-legend="bottom"><h3 class="rmd-block-title">AI 输出能力雷达</h3><svg role="img" viewBox="0 0 360 260" class="rmd-chart-svg"><title>AI 输出能力雷达</title><desc>结构化: 92, 88; 可读性: 86, 94; 可视化: 78, 90; 交互性: 71, 84; 可维护: 89, 82</desc><polygon points="180,96.24 202.6,112.66 193.97,139.22 166.03,139.22 157.4,112.66" fill="none" stroke="var(--rmd-color-line, #d7ddd2)" stroke-width="1"></polygon><polygon points="180,72.48 225.19,105.32 207.93,158.44 152.07,158.44 134.81,105.32" fill="none" stroke="var(--rmd-color-line, #d7ddd2)" stroke-width="1"></polygon><polygon points="180,48 248.48,97.75 222.32,178.25 137.68,178.25 111.52,97.75" fill="none" stroke="var(--rmd-color-line, #d7ddd2)" stroke-width="1"></polygon><line x1="180" y1="120" x2="180" y2="48" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><text x="180" y="24" text-anchor="middle">结构化</text><line x1="180" y1="120" x2="248.48" y2="97.75" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><text x="271.3" y="90.33" text-anchor="middle">可读性</text><line x1="180" y1="120" x2="222.32" y2="178.25" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><text x="236.43" y="197.67" text-anchor="middle">可视化</text><line x1="180" y1="120" x2="137.68" y2="178.25" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><text x="123.57" y="197.67" text-anchor="middle">交互性</text><line x1="180" y1="120" x2="111.52" y2="97.75" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><text x="88.7" y="90.33" text-anchor="middle">可维护</text><polygon class="rmd-chart-radar-shape" points="180,49.53 242.65,99.64 215.12,168.33 148.03,164 115.17,98.93" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.24; stroke: var(--rmd-color-primary, #176b72); stroke-width: 2"></polygon><polygon class="rmd-chart-radar-shape" points="180,52.6 248.48,97.75 220.52,175.77 142.18,172.05 120.27,100.59" style="fill: var(--rmd-color-accent, #c8523e); opacity: 0.15; stroke: var(--rmd-color-accent, #c8523e); stroke-width: 2"></polygon></svg></section>
+<h3>面积图 (Area，带图例与副轴)</h3>
+<section class="rmd-block rmd-chart rmd-chart-area" data-rmd-block="chart" data-y2="活跃用户(万)" data-legend="top"><h3 class="rmd-block-title">年度收入与活跃用户走势</h3><svg role="img" viewBox="0 0 382 220" class="rmd-chart-svg"><title>年度收入与活跃用户走势</title><desc>Q1_2025: 120, 40; Q2_2025: 150, 45; Q3_2025: 180, 60; Q4_2025: 240, 85; Q1_2026: 310, 110</desc><line x1="36" y1="158" x2="354" y2="158" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><line x1="36" y1="26" x2="36" y2="158" stroke="var(--rmd-color-line-strong, #b7c1b0)" stroke-width="1"></line><text x="354" y="34" text-anchor="end">活跃用户(万)</text><path class="rmd-chart-area-fill" d="M 36,107 L 116,94 L 195,81 L 275,56 L 354,26 L 354,158 L 36,158 Z" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.22"></path><polyline class="rmd-chart-line-path" points="36,107 116,94 195,81 275,56 354,26" fill="none" stroke="var(--rmd-color-primary, #176b72)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline><path class="rmd-chart-area-fill" d="M 36,141 L 116,139 L 195,132 L 275,122 L 354,111 L 354,158 L 36,158 Z" style="fill: var(--rmd-color-accent, #c8523e); opacity: 0.14"></path><polyline class="rmd-chart-line-path" points="36,141 116,139 195,132 275,122 354,111" fill="none" stroke="var(--rmd-color-accent, #c8523e)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline><text x="36" y="190" text-anchor="middle">Q1_2025</text><text x="116" y="190" text-anchor="middle">Q2_2025</text><text x="195" y="190" text-anchor="middle">Q3_2025</text><text x="275" y="190" text-anchor="middle">Q4_2025</text><text x="354" y="190" text-anchor="middle">Q1_2026</text></svg></section>
+<h3>环形图 (Donut)</h3>
+<section class="rmd-block rmd-chart rmd-chart-donut" data-rmd-block="chart" data-legend="bottom"><h3 class="rmd-block-title">Token 成本构成（%）</h3><svg role="img" viewBox="0 0 360 220" class="rmd-chart-svg"><title>Token 成本构成（%）</title><desc>正文: 46; 代码: 24; 表格: 18; 注释: 12</desc><g class="rmd-chart-point" data-label="正文" data-value="46"><path d="M 132,104 L 201.74,86.09 A 72,72 0 0 0 60,104 Z" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.88"></path><text x="119.97" y="8.76" text-anchor="middle">正文</text></g><g class="rmd-chart-point" data-label="代码" data-value="24"><path d="M 132,104 L 154.25,172.48 A 72,72 0 0 0 201.74,86.09 Z" style="fill: var(--rmd-color-accent, #c8523e); opacity: 0.88"></path><text x="216.13" y="150.25" text-anchor="middle">代码</text></g><g class="rmd-chart-point" data-label="表格" data-value="18"><path d="M 132,104 L 79.51,153.29 A 72,72 0 0 0 154.25,172.48 Z" style="fill: var(--rmd-color-info, #3867a8); opacity: 0.88"></path><text x="108.13" y="196.98" text-anchor="middle">表格</text></g><g class="rmd-chart-point" data-label="注释" data-value="12"><path d="M 132,104 L 60,104 A 72,72 0 0 0 79.51,153.29 Z" style="fill: var(--rmd-color-success, #2f7d4f); opacity: 0.88"></path><text x="42.74" y="139.34" text-anchor="middle">注释</text></g><circle class="rmd-chart-donut-hole" cx="132" cy="104" r="34" style="fill: var(--rmd-color-surface, #fff)"></circle><text x="132" y="108" text-anchor="middle">100</text><g class="rmd-chart-legend-item"><rect x="240" y="40" width="10" height="10" rx="2" style="fill: var(--rmd-color-primary, #176b72)"></rect><text x="256" y="50" text-anchor="start">正文</text></g><g class="rmd-chart-legend-item"><rect x="240" y="60" width="10" height="10" rx="2" style="fill: var(--rmd-color-accent, #c8523e)"></rect><text x="256" y="70" text-anchor="start">代码</text></g><g class="rmd-chart-legend-item"><rect x="240" y="80" width="10" height="10" rx="2" style="fill: var(--rmd-color-info, #3867a8)"></rect><text x="256" y="90" text-anchor="start">表格</text></g><g class="rmd-chart-legend-item"><rect x="240" y="100" width="10" height="10" rx="2" style="fill: var(--rmd-color-success, #2f7d4f)"></rect><text x="256" y="110" text-anchor="start">注释</text></g></svg></section>
+<h3>热力图 (Heatmap)</h3>
+<section class="rmd-block rmd-chart rmd-chart-heatmap" data-rmd-block="chart" data-legend="bottom"><h3 class="rmd-block-title">一周协作热度</h3><svg role="img" viewBox="0 0 272 268" class="rmd-chart-svg"><title>一周协作热度</title><desc>Mon: 12, 18, 24, 16; Tue: 10, 22, 31, 20; Wed: 14, 26, 35, 28; Thu: 11, 20, 29, 24; Fri: 9, 16, 22, 18</desc><text x="89" y="20" text-anchor="middle">S1</text><text x="129" y="20" text-anchor="middle">S2</text><text x="169" y="20" text-anchor="middle">S3</text><text x="209" y="20" text-anchor="middle">S4</text><text x="62" y="49" text-anchor="end">Mon</text><g class="rmd-chart-point" data-label="Mon" data-value="12" data-series-index="0"><rect x="72" y="28" width="34" height="34" rx="5" data-series-index="0" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.43"></rect><text x="89" y="49" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">12</text></g><g class="rmd-chart-point" data-label="Mon" data-value="18" data-series-index="1"><rect x="112" y="28" width="34" height="34" rx="5" data-series-index="1" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.55"></rect><text x="129" y="49" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">18</text></g><g class="rmd-chart-point" data-label="Mon" data-value="24" data-series-index="2"><rect x="152" y="28" width="34" height="34" rx="5" data-series-index="2" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.67"></rect><text x="169" y="49" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">24</text></g><g class="rmd-chart-point" data-label="Mon" data-value="16" data-series-index="3"><rect x="192" y="28" width="34" height="34" rx="5" data-series-index="3" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.51"></rect><text x="209" y="49" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">16</text></g><text x="62" y="89" text-anchor="end">Tue</text><g class="rmd-chart-point" data-label="Tue" data-value="10" data-series-index="0"><rect x="72" y="68" width="34" height="34" rx="5" data-series-index="0" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.39"></rect><text x="89" y="89" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">10</text></g><g class="rmd-chart-point" data-label="Tue" data-value="22" data-series-index="1"><rect x="112" y="68" width="34" height="34" rx="5" data-series-index="1" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.63"></rect><text x="129" y="89" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">22</text></g><g class="rmd-chart-point" data-label="Tue" data-value="31" data-series-index="2"><rect x="152" y="68" width="34" height="34" rx="5" data-series-index="2" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.82"></rect><text x="169" y="89" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">31</text></g><g class="rmd-chart-point" data-label="Tue" data-value="20" data-series-index="3"><rect x="192" y="68" width="34" height="34" rx="5" data-series-index="3" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.59"></rect><text x="209" y="89" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">20</text></g><text x="62" y="129" text-anchor="end">Wed</text><g class="rmd-chart-point" data-label="Wed" data-value="14" data-series-index="0"><rect x="72" y="108" width="34" height="34" rx="5" data-series-index="0" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.47"></rect><text x="89" y="129" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">14</text></g><g class="rmd-chart-point" data-label="Wed" data-value="26" data-series-index="1"><rect x="112" y="108" width="34" height="34" rx="5" data-series-index="1" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.71"></rect><text x="129" y="129" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">26</text></g><g class="rmd-chart-point" data-label="Wed" data-value="35" data-series-index="2"><rect x="152" y="108" width="34" height="34" rx="5" data-series-index="2" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.90"></rect><text x="169" y="129" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">35</text></g><g class="rmd-chart-point" data-label="Wed" data-value="28" data-series-index="3"><rect x="192" y="108" width="34" height="34" rx="5" data-series-index="3" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.76"></rect><text x="209" y="129" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">28</text></g><text x="62" y="169" text-anchor="end">Thu</text><g class="rmd-chart-point" data-label="Thu" data-value="11" data-series-index="0"><rect x="72" y="148" width="34" height="34" rx="5" data-series-index="0" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.41"></rect><text x="89" y="169" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">11</text></g><g class="rmd-chart-point" data-label="Thu" data-value="20" data-series-index="1"><rect x="112" y="148" width="34" height="34" rx="5" data-series-index="1" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.59"></rect><text x="129" y="169" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">20</text></g><g class="rmd-chart-point" data-label="Thu" data-value="29" data-series-index="2"><rect x="152" y="148" width="34" height="34" rx="5" data-series-index="2" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.78"></rect><text x="169" y="169" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">29</text></g><g class="rmd-chart-point" data-label="Thu" data-value="24" data-series-index="3"><rect x="192" y="148" width="34" height="34" rx="5" data-series-index="3" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.67"></rect><text x="209" y="169" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">24</text></g><text x="62" y="209" text-anchor="end">Fri</text><g class="rmd-chart-point" data-label="Fri" data-value="9" data-series-index="0"><rect x="72" y="188" width="34" height="34" rx="5" data-series-index="0" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.37"></rect><text x="89" y="209" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">9</text></g><g class="rmd-chart-point" data-label="Fri" data-value="16" data-series-index="1"><rect x="112" y="188" width="34" height="34" rx="5" data-series-index="1" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.51"></rect><text x="129" y="209" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">16</text></g><g class="rmd-chart-point" data-label="Fri" data-value="22" data-series-index="2"><rect x="152" y="188" width="34" height="34" rx="5" data-series-index="2" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.63"></rect><text x="169" y="209" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">22</text></g><g class="rmd-chart-point" data-label="Fri" data-value="18" data-series-index="3"><rect x="192" y="188" width="34" height="34" rx="5" data-series-index="3" style="fill: var(--rmd-color-primary, #176b72); opacity: 0.55"></rect><text x="209" y="209" text-anchor="middle" style="fill: var(--rmd-color-fg, #20251f)">18</text></g></svg></section>
 <hr>
 <h2>8. 增强滑块 (Slider v0.2)</h2>
 <p>支持双滑块、刻度盘 (<code>marks</code>) 与对数比例 (<code>scale=&quot;log&quot;</code>)。</p>
-<div class="rmd-block rmd-slider" data-rmd-block="slider" data-name="volume_range" data-unit="QPS" data-scale="log" data-marks="10,100,500,1000"><label for="rmd-slider-volume_range">动态请求限制 (区间)</label><input id="rmd-slider-volume_range" type="range" min="10" max="1000" step="10" value="100,500" aria-label="动态请求限制 (区间)"><output>100,500 QPS</output></div>
+<div class="rmd-block rmd-slider" data-rmd-block="slider" data-name="volume_range" data-unit="QPS" data-range="true" data-scale="log" data-marks="10,100,500,1000"><label for="rmd-slider-volume_range-min">动态请求限制 (区间)</label><div class="rmd-slider-range-control" style="--rmd-range-start: 9.09%; --rmd-range-end: 49.49%"><span class="rmd-slider-range-track" aria-hidden="true"></span><input id="rmd-slider-volume_range-min" type="range" min="10" max="1000" step="10" aria-label="动态请求限制 (区间)" value="100" data-bound="min"><input id="rmd-slider-volume_range-max" type="range" min="10" max="1000" step="10" aria-label="动态请求限制 (区间)" value="500" data-bound="max"></div><output>100 - 500 QPS</output></div>
 <hr>
 <h2>9. 经典互动块复习 (Callout, Tabs, Diff, Flow)</h2>
-<section class="rmd-block rmd-tabs" data-rmd-block="tabs" data-default=" React"><div role="tablist"><button type="button" role="tab" aria-selected="true" data-label=" React"> React</button><button type="button" role="tab" aria-selected="false" data-label=" Vue"> Vue</button></div><section role="tabpanel" data-label=" React"><pre class="rmd-code"><code class="language-jsx">export function Hello() {
+<section class="rmd-block rmd-tabs" data-rmd-block="tabs" data-default="Vue"><div role="tablist"><button type="button" role="tab" aria-selected="false" data-label="React">React</button><button type="button" role="tab" aria-selected="true" data-label="Vue">Vue</button></div><section role="tabpanel" hidden data-label="React"><pre class="rmd-code"><code class="language-jsx">export function Hello() {
   return &lt;div className=&quot;rmd&quot;&gt;Hello&lt;/div&gt;;
-}</code></pre></section><section role="tabpanel" hidden data-label=" Vue"><pre class="rmd-code"><code class="language-vue">&lt;template&gt;
+}</code></pre></section><section role="tabpanel" data-label="Vue"><pre class="rmd-code"><code class="language-vue">&lt;template&gt;
   &lt;div class=&quot;rmd&quot;&gt;Hello&lt;/div&gt;
 &lt;/template&gt;</code></pre></section></section>
 <section class="rmd-block rmd-flow" data-rmd-block="flow" data-direction="lr"><ol><li><span>Parser</span> <span aria-hidden="true">→</span> <span>Validator</span></li><li><span>Validator</span> <span aria-hidden="true">→</span> <span>Renderer</span></li><li><span>Renderer</span> <span aria-hidden="true">→</span> <span>HTML</span></li><li><span>HTML</span> <span aria-hidden="true">→</span> <span>Browser</span></li></ol></section>
@@ -890,105 +1065,559 @@ body[data-rmd-theme] {
   &quot;status&quot;: &quot;Ready for Production&quot;
 }</code></pre></section>
 </main>
-  <script>
+<script type="application/rmd">---
+title: "Rich Markdown v0.2 Showcase"
+author: "AI"
+date: "2026-05-10"
+---
 
-function initRichMarkdownTheme() {
-  // Initialize Carousel Autoplay
-  document.querySelectorAll('.rmd-carousel[data-autoplay="true"]').forEach(carousel => {
-    const track = carousel.querySelector('.rmd-carousel-track');
-    const interval = parseInt(carousel.getAttribute('data-interval') || '3000', 10);
-    if (!track) return;
-    
-    let timer = null;
-    let isHovered = false;
+# Rich Markdown v0.2 终极组件展示
 
-    const play = () => {
-      timer = setInterval(() => {
-        if (isHovered) return;
-        const currentScroll = track.scrollLeft;
-        const maxScroll = track.scrollWidth - track.clientWidth;
-        
-        if (currentScroll >= maxScroll - 1) {
-          track.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-          track.scrollBy({ left: track.clientWidth, behavior: 'smooth' });
-        }
-      }, interval);
-    };
+本页面展示了 `.rmd` (Rich Markdown) 框架 v0.2 规范下所有核心扩展块及其增强能力的实时渲染与排版效果。这些组件均遵循“结构化输入，纯 CSS 优先渲染”的设计哲学。
 
-    carousel.addEventListener('mouseenter', () => isHovered = true);
-    carousel.addEventListener('mouseleave', () => isHovered = false);
-    
-    play();
-  });
+## 1. Timeline (时间轴)
 
-  // Initialize Math via KaTeX (Lazy Load)
-  const mathBlocks = document.querySelectorAll('.rmd-math code.language-latex');
-  if (mathBlocks.length > 0) {
-    const loadScript = (src) => new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = src;
-      script.onload = resolve;
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
+时间轴非常适合记录项目进度或历史事件，支持垂直与水平两种模式。
 
-    const loadStyle = (href) => {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = href;
-      document.head.appendChild(link);
-    };
+### 垂直时间轴
+:::timeline
+@ 2026-01-01 [title="项目立项"] [status="success"]
+项目的初步规划完成，团队组建完毕。
 
-    loadStyle('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css');
-    loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js').then(() => {
-      mathBlocks.forEach(block => {
-        try {
-          const content = block.textContent;
-          const parent = block.parentElement;
-          if (parent && typeof katex !== 'undefined') {
-            const span = document.createElement('span');
-            katex.render(content, span, { displayMode: true, throwOnError: false });
-            parent.replaceWith(span);
-          }
-        } catch(e) {
-          console.error("KaTeX Error:", e);
-        }
-      });
-    }).catch(e => console.warn("Failed to load KaTeX", e));
+@ 2026-03-15 [title="v0.1 发布"] [status="success"]
+完成核心解析器的基础架构。
+
+@ 2026-05-10 [title="v0.2 扩展升级"] [status="pending"]
+新增高级互动组件、优化 CSS 瀑布流和交互，合规性测试全覆盖。
+
+@ 2026-12-01 [title="开源 1.0 正式版"] [status="default"]
+计划在此时间点开放完整源码库及周边生态。
+:::
+
+### 水平时间轴
+:::timeline direction="horizontal"
+@ 阶段一 [status="success"]
+需求分析与设计
+@ 阶段二 [status="warning"]
+高可用架构开发
+@ 阶段三 [status="danger"]
+遇到技术难点与回退
+@ 阶段四 [status="pending"]
+系统联调与发布
+:::
+
+### 水平时间轴 · 长内容回归测试
+
+> 这一组用来验证：单条内容很长时不会把其他 `@` 区块挤出可视区——长文本会在 240px 的卡片内自动换行，并支持水平滚动浏览全部条目。
+
+:::timeline direction="horizontal"
+@ Day 1 [title="启动" status="success"]
+需求评审会，确认目标与范围。
+@ Day 2 [title="设计" status="success"]
+本阶段完成了用户旅程图、信息架构、关键交互原型、视觉风格定调以及一份较为详尽的设计评审备忘录，并与利益相关方对齐了所有的硬约束（合规、可访问性、跨端一致性）。后续会以双周节奏推进可用性测试与设计资产沉淀，同步把组件库的命名规范固化到 Figma 与代码工程两侧。
+@ Day 3 [title="开发" status="warning"]
+后端 API、前端框架与可观测性接入并行启动。
+@ Day 4 [title="联调"]
+跨域 / 限流 / 重试 / 幂等四件事都需要回归。
+@ Day 5 [title="灰度" status="pending"]
+按地域 1% → 10% → 50% → 100% 的节奏放量。
+:::
+
+---
+
+## 2. Kanban (看板)
+
+将信息以列状泳道聚合，适用于任务管理、多栏内容对比等信息流。
+
+:::kanban
+@ 待办事项 (To Do)
+- [ ] 编写组件使用说明文档
+- [ ] 增加更多第三方主题支持
+- [ ] 补充性能压测报告
+
+@ 进行中 (In Progress)
+- [x] 更新 Parser 的 AST 输出验证
+- [x] 重构主题引擎
+
+@ 已完成 (Done)
+* 合规性测试 100% 通过
+* CSS 层全面消除对 JS 的重度依赖
+* Carousel 纯 CSS 吸附轮播支持
+:::
+
+---
+
+## 3. Carousel (轮播交互)
+
+使用原生 CSS Scroll Snap 特性实现的丝滑手势交互分屏组件。
+
+:::carousel autoplay="true" interval="4000"
+### 特性一：全原生驱动
+没有复杂的 DOM 操作，只需手势或触控板轻轻一划。
+
+![Carousel Image 1](https://picsum.photos/800/300?random=1)
+---
+### 特性二：响应式适配
+不论是移动端还是桌面端，都能保证中心对齐和整屏滚动。
+
+![Carousel Image 2](https://picsum.photos/800/300?random=2)
+---
+### 特性三：优雅的玻璃拟物
+继承了默认主题精雕细琢的柔和边框与高级渐变投影体系。
+
+![Carousel Image 3](https://picsum.photos/800/300?random=3)
+:::
+
+---
+
+## 4. Details (智能折叠面板)
+
+原生 `<details>` 封装，自动携带过渡动画，非常适合存放长篇幅备注或次要内容。
+
+:::details title="点击查看完整的架构底层变更日志" open="true"
+1. **Parser 层**：为保证对 HTML 规范的尊重，采用了 Markdown-it 的原生 Tokenizer，对新增的块级标签执行自定义规则分发。
+2. **Validator 层**：扩展了超过 20 条新规则，保障图表多系列、双滑块极值、看板子节点等树形结构的严格类型安全。
+3. **Renderer 层**：全面抛弃 React/Vue 绑定，在核心包中纯拼接标准 HTML DOM，实现 `100% Client Agnostic` 的极速加载体验。
+:::
+
+---
+
+## 5. Embed & Math (媒体嵌入与公式)
+
+处理视频、地图或外部挂载应用，以及专业数学公式。
+
+### Bilibili / YouTube 嵌入
+:::embed type="video" id="https://www.youtube.com/embed/dQw4w9WgXcQ" aspect-ratio="16/9"
+:::
+
+### LaTeX 数学公式
+:::math
+\mathcal{L} = \sum_{i=1}^{N} \left( y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i) \right) + \frac{\lambda}{2} \|\mathbf{w}\|_2^2
+:::
+
+---
+
+## 6. Grid (网格与瀑布流)
+
+v0.2 引入了灵活的多列定义和瀑布流排版能力。
+
+### 瀑布流模式 (Masonry)
+:::grid 3 gap="sm" layout="masonry"
+:::callout info title="轻量级瀑布流"
+采用 CSS Column 分栏实现，从上到下填充，绝不断行。
+:::
+---
+:::callout tip title="无需 JS"
+相较于绝对定位的计算方案，Masonry 大幅节省了前端计算开销。
+:::
+---
+![Tall Image](https://picsum.photos/300/500?random=4)
+---
+:::callout warning title="浏览器兼容"
+现代浏览器对 `column-count` 的支持已经十分完美。
+:::
+---
+![Short Image](https://picsum.photos/300/200?random=5)
+:::
+
+---
+
+## 7. 增强图表 (Charts v0.2)
+
+这一节覆盖 `:::chart` 当前契约中的全部 8 种图表类型，便于直接对比渲染效果与降级表现。
+
+### 柱状图 (Bar)
+:::chart bar title="核心包体积对比（KB gzip）" y="KB" legend="none" emphasis="primary"
+Parser 18
+Renderer 12
+Runtime 7
+Theme 4
+:::
+
+### 折线图 (Line)
+:::chart line title="月活用户增长趋势（万）" x="月份" y="MAU" legend="none"
+Jan 42
+Feb 48
+Mar 57
+Apr 66
+May 81
+Jun 96
+:::
+
+### 饼图 (Pie)
+:::chart pie title="文档使用场景占比（%）" legend="right" tooltip="true"
+方案评审 34
+数据报告 28
+产品说明 22
+研究笔记 16
+:::
+
+### 散点图 (Scatter)
+:::chart scatter title="性能与能耗分布模型" x="延迟(ms)" y="能耗(W)"
+Model_A 12 300
+Model_B 15 450
+Model_C 8 150
+Model_D 22 800
+Model_E 18 600
+:::
+
+### 雷达图 (Radar)
+:::chart radar title="AI 输出能力雷达" legend="bottom"
+结构化 92 88
+可读性 86 94
+可视化 78 90
+交互性 71 84
+可维护 89 82
+:::
+
+### 面积图 (Area，带图例与副轴)
+:::chart area title="年度收入与活跃用户走势" y2="活跃用户(万)" legend="top" tooltip="true" emphasis="primary"
+Q1_2025 120 40
+Q2_2025 150 45
+Q3_2025 180 60
+Q4_2025 240 85
+Q1_2026 310 110
+:::
+
+### 环形图 (Donut)
+:::chart donut title="Token 成本构成（%）" legend="bottom"
+正文 46
+代码 24
+表格 18
+注释 12
+:::
+
+### 热力图 (Heatmap)
+:::chart heatmap title="一周协作热度" x="星期" y="时段" tooltip="true"
+Mon 12 18 24 16
+Tue 10 22 31 20
+Wed 14 26 35 28
+Thu 11 20 29 24
+Fri 9 16 22 18
+:::
+
+---
+
+## 8. 增强滑块 (Slider v0.2)
+
+支持双滑块、刻度盘 (`marks`) 与对数比例 (`scale="log"`)。
+
+:::slider name="volume_range" label="动态请求限制 (区间)" min="10" max="1000" step="10" default="100,500" unit="QPS" scale="log" marks="10,100,500,1000"
+:::
+
+---
+
+## 9. 经典互动块复习 (Callout, Tabs, Diff, Flow)
+
+:::tabs default="Vue"
+@ React
+```jsx
+export function Hello() {
+  return <div className="rmd">Hello</div>;
+}
+```
+@ Vue
+```vue
+<template>
+  <div class="rmd">Hello</div>
+</template>
+```
+:::
+
+:::flow direction="lr"
+Parser -> Validator -> Renderer
+Renderer -> HTML
+HTML -> Browser
+:::
+
+:::diff title="v0.1 to v0.2 升级差异"
+- import { parseOld } from "parser"; @注: 已弃用
++ import { parseCoreBlock } from "blocks-core";
++ import { renderTimeline, renderKanban } from "renderer-core";
+:::
+
+:::export label="复制代码片段" format="json"
+{
+  "project": "Rich Markdown",
+  "version": "v0.2",
+  "status": "Ready for Production"
+}
+:::
+</script>
+<script data-rmd-runtime-inline>
+(() => {
+  const state = { sliders: {}, activeTabs: {} };
+
+  function snapToStep(value, min, step) {
+    if (!Number.isFinite(step) || step <= 0) return value;
+    return min + Math.round((value - min) / step) * step;
   }
 
-  // Initialize Tabs
-  document.querySelectorAll('.rmd-tabs').forEach(tabs => {
-    const buttons = tabs.querySelectorAll('[role="tab"]');
-    const panels = tabs.querySelectorAll('[role="tabpanel"]');
-    
-    buttons.forEach(button => {
-      button.addEventListener('click', () => {
-        const targetLabel = button.getAttribute('data-label');
-        
-        buttons.forEach(btn => {
-          btn.setAttribute('aria-selected', btn === button ? 'true' : 'false');
-        });
-        
-        panels.forEach(panel => {
-          if (panel.getAttribute('data-label') === targetLabel) {
-            panel.removeAttribute('hidden');
-          } else {
-            panel.setAttribute('hidden', '');
-          }
+	  function setSliderValue(name, value, spec, bound) {
+	    const numeric = Number(value);
+	    const clamped = Math.min(Math.max(numeric, spec.min), spec.max);
+	    const stepped = Number(snapToStep(clamped, spec.min, spec.step).toFixed(12));
+	    if (spec.range) {
+	      const previous = Array.isArray(state.sliders[name]) ? state.sliders[name] : [spec.min, spec.max];
+	      let next = bound === "max" ? [previous[0], stepped] : [stepped, previous[1]];
+	      if (next[0] > next[1]) {
+	        next = bound === "max" ? [stepped, stepped] : [next[1], next[1]];
+	      }
+	      state.sliders[name] = next;
+	      return next;
+	    }
+	    state.sliders[name] = stepped;
+	    return stepped;
+	  }
+
+	  function formatValue(value, formatter) {
+	    if (Array.isArray(value)) return value.map((item) => formatValue(item, formatter)).join(" - ");
+	    if (formatter === "int") return String(Math.round(Number(value)));
+	    return String(value);
+	  }
+
+	  function formatSliderOutput(value, unit) {
+	    const text = Array.isArray(value) ? value.join(" - ") : String(value);
+	    return unit ? text + " " + unit : text;
+	  }
+
+  function renderTemplate(template) {
+    return String(template).replace(/{{\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*\|\s*([a-zA-Z_][a-zA-Z0-9_]*))?\s*}}/g, (_match, name, formatter) => {
+      if (state.sliders[name] === undefined) return "[未定义:" + name + "]";
+      return formatValue(state.sliders[name], formatter);
+    });
+  }
+
+  function dispatchStateChange(root) {
+    root.dispatchEvent(new CustomEvent("rmd:statechange", {
+      bubbles: true,
+      detail: { state }
+    }));
+  }
+
+  async function writeClipboard(content) {
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) return false;
+      await navigator.clipboard.writeText(content);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function showManualCopy(block, content) {
+    let textarea = block.querySelector("textarea[data-rmd-manual-copy]");
+    if (!textarea) {
+      textarea = document.createElement("textarea");
+      textarea.setAttribute("data-rmd-manual-copy", "true");
+      textarea.setAttribute("aria-label", "Manual copy fallback");
+      block.append(textarea);
+    }
+    textarea.value = content;
+    textarea.focus();
+    textarea.select();
+  }
+
+  function bindSliders(root) {
+    root.querySelectorAll('[data-rmd-block="slider"]').forEach((slider) => {
+      const name = slider.getAttribute("data-name");
+	      const inputs = Array.from(slider.querySelectorAll('input[type="range"]'));
+	      const output = slider.querySelector("output");
+	      if (!name || inputs.length === 0 || state.sliders[name] !== undefined) return;
+
+	      const unit = slider.getAttribute("data-unit") || "";
+	      const isRange = slider.getAttribute("data-range") === "true";
+	      const firstInput = inputs[0];
+	      const spec = {
+	        min: Number(firstInput.min),
+	        max: Number(firstInput.max),
+	        step: Number(firstInput.step || 1),
+	        range: isRange
+	      };
+	      state.sliders[name] = isRange ? inputs.map((input) => Number(input.value)) : Number(firstInput.value);
+
+	      inputs.forEach((input) => {
+	        input.addEventListener("input", () => {
+	          const value = setSliderValue(name, input.value, spec, input.getAttribute("data-bound"));
+	          if (isRange) {
+	            inputs[0].value = String(value[0]);
+	            inputs[1].value = String(value[1]);
+	            updateRangeTrack(slider, value, spec);
+	          }
+	          if (output) output.textContent = formatSliderOutput(value, unit);
+	          dispatchStateChange(root);
+	        });
+	      });
+	    });
+	  }
+
+	  function updateRangeTrack(slider, value, spec) {
+	    const control = slider.querySelector(".rmd-slider-range-control");
+	    if (!control || !Array.isArray(value) || spec.max === spec.min) return;
+	    control.style.setProperty("--rmd-range-start", String(Math.round(((value[0] - spec.min) / (spec.max - spec.min)) * 10000) / 100) + "%");
+	    control.style.setProperty("--rmd-range-end", String(Math.round(((value[1] - spec.min) / (spec.max - spec.min)) * 10000) / 100) + "%");
+	  }
+
+	  function bindExports(root) {
+    root.querySelectorAll('[data-rmd-block="export"]').forEach((block) => {
+      const button = block.querySelector("button");
+      const code = block.querySelector("pre code");
+      if (!button || !code) return;
+
+      button.addEventListener("click", async () => {
+        const content = renderTemplate(code.textContent || "");
+        const ok = await writeClipboard(content);
+        block.setAttribute("data-rmd-copied", ok ? "true" : "false");
+        if (!ok) showManualCopy(block, content);
+      });
+    });
+  }
+
+  function bindTabs(root) {
+    root.querySelectorAll('[data-rmd-block="tabs"]').forEach((tabs) => {
+      const key = tabs.getAttribute("data-rmd-id") || tabs.getAttribute("data-default") || "tabs";
+      state.activeTabs[key] = tabs.getAttribute("data-default") || "";
+
+      tabs.querySelectorAll('[role="tab"]').forEach((button) => {
+        button.addEventListener("click", () => {
+          const label = button.getAttribute("data-label");
+          if (!label) return;
+          state.activeTabs[key] = label;
+
+          tabs.querySelectorAll('[role="tab"]').forEach((candidate) => {
+            candidate.setAttribute("aria-selected", String(candidate.getAttribute("data-label") === label));
+          });
+          tabs.querySelectorAll('[role="tabpanel"]').forEach((panel) => {
+            panel.hidden = panel.getAttribute("data-label") !== label;
+          });
+          dispatchStateChange(root);
         });
       });
     });
-  });
-}
+  }
 
-if (typeof document !== 'undefined' && document.readyState !== 'loading') {
-  initRichMarkdownTheme();
-} else if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', initRichMarkdownTheme);
-}
+  function bindCarousels(root) {
+    root.querySelectorAll('[data-rmd-block="carousel"]').forEach((carousel) => {
+      const track = carousel.querySelector(".rmd-carousel-track");
+      if (!track) return;
 
-  </script>
+      const items = Array.from(track.children || []);
+      if (items.length <= 1) return;
+
+      const prev = carousel.querySelector('[data-rmd-carousel="prev"]');
+      const next = carousel.querySelector('[data-rmd-carousel="next"]');
+      const dots = Array.from(carousel.querySelectorAll(".rmd-carousel-dot"));
+      const interval = Number(carousel.getAttribute("data-interval") || 3000);
+      let activeIndex = 0;
+      let paused = false;
+
+      const normalizeIndex = (index) => (index + items.length) % items.length;
+      const updateDots = () => {
+        carousel.setAttribute("data-active-index", String(activeIndex));
+        dots.forEach((dot, index) => {
+          if (index === activeIndex) {
+            dot.setAttribute("aria-current", "true");
+          } else {
+            dot.removeAttribute("aria-current");
+          }
+        });
+      };
+      const goTo = (index, behavior = "smooth") => {
+        activeIndex = normalizeIndex(index);
+        const left = activeIndex * (track.clientWidth || 0);
+        if (typeof track.scrollTo === "function") {
+          track.scrollTo({ left, behavior });
+        } else {
+          track.scrollLeft = left;
+        }
+        updateDots();
+      };
+      const syncFromScroll = () => {
+        if (!track.clientWidth) return;
+        activeIndex = normalizeIndex(Math.round(track.scrollLeft / track.clientWidth));
+        updateDots();
+      };
+
+      if (prev) prev.addEventListener("click", () => goTo(activeIndex - 1));
+      if (next) next.addEventListener("click", () => goTo(activeIndex + 1));
+      dots.forEach((dot, index) => dot.addEventListener("click", () => goTo(index)));
+      track.addEventListener("scroll", syncFromScroll);
+      carousel.addEventListener("pointerenter", () => { paused = true; });
+      carousel.addEventListener("pointerleave", () => { paused = false; });
+      carousel.addEventListener("focusin", () => { paused = true; });
+      carousel.addEventListener("focusout", () => { paused = false; });
+
+      updateDots();
+
+      if (carousel.getAttribute("data-autoplay") === "true" && Number.isFinite(interval) && interval > 0) {
+        window.setInterval(() => {
+          if (!paused) goTo(activeIndex + 1);
+        }, interval);
+      }
+    });
+  }
+
+  function enhanceMath(root) {
+    const blocks = Array.from(root.querySelectorAll(".rmd-math-display[data-latex]"))
+      .filter((block) => block.getAttribute("data-rendered") !== "katex");
+    if (blocks.length === 0) return;
+
+    const render = () => {
+      if (!window.katex) return;
+      blocks.forEach((block) => {
+        const latex = block.getAttribute("data-latex") || block.textContent || "";
+        try {
+          window.katex.render(latex, block, { displayMode: true, throwOnError: false });
+          block.setAttribute("data-rendered", "katex");
+        } catch {
+          // Keep the static formula-style fallback visible when KaTeX rejects input.
+        }
+      });
+    };
+
+    if (window.katex) {
+      render();
+      return;
+    }
+
+    if (!document.querySelector('link[data-rmd-katex-style]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css";
+      link.setAttribute("data-rmd-katex-style", "true");
+      document.head.append(link);
+    }
+
+    const existingScript = document.querySelector('script[data-rmd-katex-script]');
+    if (existingScript) {
+      existingScript.addEventListener("load", render, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js";
+    script.async = true;
+    script.setAttribute("data-rmd-katex-script", "true");
+    script.addEventListener("load", render, { once: true });
+    document.head.append(script);
+  }
+
+  function init() {
+    const root = document.querySelector(".rmd-document") || document.body;
+    bindSliders(root);
+    bindExports(root);
+    bindTabs(root);
+    bindCarousels(root);
+    enhanceMath(root);
+    window.RMD_STATE = state;
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>
 </body>
 </html>

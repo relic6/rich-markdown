@@ -104,6 +104,23 @@ test("validator accepts range slider defaults", () => {
   assert.equal(result.ok, true);
 });
 
+test("validator accepts card blocks inside grids", () => {
+  const ast = parse(`:::grid cols=2
+:::card title=OSI 七层模型
+1. 物理层
+:::
+:::card title=常用协议映射
+- **应用层**: HTTP
+:::
+:::`);
+  const result = validate(ast);
+
+  assert.equal(ast.children[0].cells[0][0].type, "card");
+  assert.equal(ast.children[0].cells[1][0].type, "card");
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.errors, []);
+});
+
 test("validator reports nested grid and nested tabs", () => {
   const ast = {
     type: "root",

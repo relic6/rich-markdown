@@ -50,6 +50,8 @@ export function renderNode(node) {
       return renderChart(node);
     case "grid":
       return renderGrid(node);
+    case "card":
+      return renderCard(node);
     case "callout":
       return renderCallout(node);
     case "slider":
@@ -361,6 +363,17 @@ function renderGrid(node) {
     cells,
     "</section>"
   ].join("");
+}
+
+function renderCard(node) {
+  const warningAttr = renderWarningsAttr(node);
+
+  return [
+    `<section class="rmd-block rmd-card" data-rmd-block="card"${warningAttr}>`,
+    node.title ? `<h3 class="rmd-card-title">${escapeHtml(node.title)}</h3>` : "",
+    `<div class="rmd-card-body">${renderChildren(node.children)}</div>`,
+    "</section>"
+  ].filter(Boolean).join("");
 }
 
 function renderCallout(node) {

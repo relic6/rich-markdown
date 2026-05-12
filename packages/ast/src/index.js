@@ -4,6 +4,7 @@ export const CORE_BLOCK_TYPES = new Set([
   // v0.1 core 8 blocks
   "chart",
   "grid",
+  "card",
   "callout",
   "slider",
   "export",

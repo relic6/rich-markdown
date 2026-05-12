@@ -148,6 +148,7 @@ body[data-rmd-theme] {
 
 /* Card-like blocks — flat, single thin border, no shadow */
 .rmd-grid-cell,
+.rmd-card,
 .rmd-callout,
 .rmd-export,
 .rmd-slider,
@@ -157,6 +158,17 @@ body[data-rmd-theme] {
   background: var(--rmd-color-surface);
   border: 1px solid var(--rmd-color-line);
   box-shadow: none;
+}
+
+.rmd-card {
+  border-color: var(--rmd-color-line-strong);
+  background:
+    linear-gradient(180deg, rgb(254 250 238 / 0.98), rgb(247 240 222 / 0.92));
+  border-radius: var(--rmd-radius-md);
+}
+
+.rmd-card::before {
+  display: none;
 }
 
 .rmd-callout {
@@ -175,6 +187,7 @@ body[data-rmd-theme] {
 .rmd-callout-info    { color: var(--rmd-color-info);    border-color: var(--rmd-color-info); }
 
 .rmd-callout-title,
+.rmd-card-title,
 .rmd-block-title {
   color: var(--rmd-color-fg);
   font-family: var(--rmd-font-ui);
@@ -183,6 +196,7 @@ body[data-rmd-theme] {
   letter-spacing: 0;
 }
 
+.rmd-card-body,
 .rmd-callout-body { color: var(--rmd-color-fg); }
 
 /* Chart — flat, scholarly, no shadow drop */

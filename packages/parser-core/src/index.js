@@ -285,6 +285,44 @@ function collectBlock(lines, startIndex, blockStart) {
       continue;
     }
 
+    const nestedBlockStart = lines[index].match(/^:::\s*([a-z][a-z0-9-]*)(?:\s+(.*))?\s*$/i);
+    if (nestedBlockStart) {
+      contentLines.push(lines[index]);
+      let depth = 1;
+      let nestedMarkdownFence = null;
+
+      for (index += 1; index < lines.length; index += 1) {
+        const nestedFence = matchMarkdownFence(lines[index]);
+        contentLines.push(lines[index]);
+
+        if (nestedMarkdownFence) {
+          if (nestedFence && nestedFence.marker === nestedMarkdownFence.marker && nestedFence.length >= nestedMarkdownFence.length) {
+            nestedMarkdownFence = null;
+          }
+          continue;
+        }
+
+        if (nestedFence) {
+          nestedMarkdownFence = nestedFence;
+          continue;
+        }
+
+        if (lines[index].match(/^:::\s*([a-z][a-z0-9-]*)(?:\s+(.*))?\s*$/i)) {
+          depth += 1;
+          continue;
+        }
+
+        if (/^:::\s*$/.test(lines[index])) {
+          depth -= 1;
+          if (depth === 0) {
+            break;
+          }
+        }
+      }
+
+      continue;
+    }
+
     if (/^:::\s*$/.test(lines[index])) {
       endIndex = index;
       closed = true;

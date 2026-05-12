@@ -66,6 +66,9 @@ export function parseCoreBlock(block, parseChildren) {
     case "grid":
       node = parseGrid(block, parseChildren);
       break;
+    case "card":
+      node = parseCard(block, parseChildren);
+      break;
     case "callout":
       node = parseCallout(block, parseChildren);
       break;
@@ -196,9 +199,9 @@ function parseChart(block) {
 
 function parseGrid(block, parseChildren) {
   const { positional, attrs } = parseAttrs(block.attrText);
-  const unknownAttrs = pickUnknownAttrs(attrs, ["gap", "layout"]);
+  const unknownAttrs = pickUnknownAttrs(attrs, ["cols", "columns", "gap", "layout"]);
   
-  const columnsRaw = positional[0] ?? "1";
+  const columnsRaw = attrs.cols ?? attrs.columns ?? positional[0] ?? "1";
   const columnsArr = columnsRaw.split(",").map(Number);
   const columns = columnsArr.length === 1 ? columnsArr[0] : columnsArr;
 
@@ -239,6 +242,18 @@ function parseGrid(block, parseChildren) {
   }, warnings), { unknownAttrs });
 }
 
+function parseCard(block, parseChildren) {
+  const { attrs } = parseAttrs(block.attrText);
+  const unknownAttrs = pickUnknownAttrs(attrs, ["title"]);
+  const title = readLooseAttr(block.attrText, "title") ?? attrs.title ?? null;
+
+  return withOptionalFields({
+    type: "card",
+    title,
+    children: parseChildren(block.content)
+  }, { unknownAttrs });
+}
+
 function parseCallout(block, parseChildren) {
   const { positional, attrs } = parseAttrs(block.attrText);
   const unknownAttrs = pickUnknownAttrs(attrs, ["title"]);
@@ -247,7 +262,7 @@ function parseCallout(block, parseChildren) {
   return withOptionalFields({
     type: "callout",
     kind: ["info", "tip", "warning", "danger", "success"].includes(kind) ? kind : "info",
-    title: attrs.title ?? null,
+    title: readLooseAttr(block.attrText, "title") ?? attrs.title ?? null,
     children: parseChildren(block.content)
   }, { unknownAttrs });
 }
@@ -468,6 +483,14 @@ function parseTimeline(block, parseChildren) {
       continue;
     }
 
+    if (!current) {
+      const bulletItem = parseTimelineBulletItem(line);
+      if (bulletItem) {
+        items.push(bulletItem);
+        continue;
+      }
+    }
+
     if (current) {
       current.source += `${line}\n`;
     } else if (line.trim().length > 0) {
@@ -497,6 +520,48 @@ function parseTimeline(block, parseChildren) {
       children: parseChildren(item.source.trim())
     }))
   }, warnings), { unknownAttrs });
+}
+
+function parseTimelineBulletItem(line) {
+  const match = line.match(/^\s*[-*+]\s+(.+?)\s*$/);
+  if (!match) {
+    return null;
+  }
+
+  const body = match[1].trim();
+  const strongPrefix = body.match(/^\*\*([^*]+)\*\*\s*[:：]?\s*(.*)$/);
+  if (strongPrefix) {
+    return {
+      time: strongPrefix[1].trim(),
+      title: null,
+      status: "default",
+      source: strongPrefix[2].trim()
+    };
+  }
+
+  const colonPrefix = body.match(/^([^:：]+)[:：]\s*(.*)$/);
+  if (colonPrefix) {
+    return {
+      time: stripInlineMarkup(colonPrefix[1].trim()),
+      title: null,
+      status: "default",
+      source: colonPrefix[2].trim()
+    };
+  }
+
+  return {
+    time: stripInlineMarkup(body),
+    title: null,
+    status: "default",
+    source: ""
+  };
+}
+
+function stripInlineMarkup(value) {
+  return value
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .trim();
 }
 
 function parseTimelineHeader(headerText) {
@@ -623,6 +688,13 @@ function parseMath(block) {
 }
 
 function splitGridCells(content) {
+  if (!/^---\s*$/m.test(content)) {
+    const adjacentBlockCells = splitAdjacentBlockCells(content);
+    if (adjacentBlockCells) {
+      return adjacentBlockCells;
+    }
+  }
+
   const cells = [];
   let current = [];
 
@@ -638,6 +710,84 @@ function splitGridCells(content) {
 
   cells.push(current.join("\n").trim());
   return cells;
+}
+
+function splitAdjacentBlockCells(content) {
+  const lines = content.split(/\r?\n/);
+  const cells = [];
+  let index = 0;
+
+  while (index < lines.length) {
+    while (index < lines.length && lines[index].trim() === "") {
+      index += 1;
+    }
+
+    if (index >= lines.length) {
+      break;
+    }
+
+    if (!isBlockStartLine(lines[index])) {
+      return null;
+    }
+
+    const start = index;
+    let depth = 1;
+    let markdownFence = null;
+    index += 1;
+
+    for (; index < lines.length; index += 1) {
+      const fence = matchMarkdownFenceLine(lines[index]);
+
+      if (markdownFence) {
+        if (fence && fence.marker === markdownFence.marker && fence.length >= markdownFence.length) {
+          markdownFence = null;
+        }
+        continue;
+      }
+
+      if (fence) {
+        markdownFence = fence;
+        continue;
+      }
+
+      if (isBlockStartLine(lines[index])) {
+        depth += 1;
+        continue;
+      }
+
+      if (/^:::\s*$/.test(lines[index])) {
+        depth -= 1;
+        if (depth === 0) {
+          index += 1;
+          break;
+        }
+      }
+    }
+
+    if (depth !== 0) {
+      return null;
+    }
+
+    cells.push(lines.slice(start, index).join("\n").trim());
+  }
+
+  return cells.length > 1 ? cells : null;
+}
+
+function isBlockStartLine(line) {
+  return /^:::\s*([a-z][a-z0-9-]*)(?:\s+(.*))?\s*$/i.test(line);
+}
+
+function matchMarkdownFenceLine(line) {
+  const match = line.match(/^\s*(`{3,}|~{3,})/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    marker: match[1][0],
+    length: match[1].length
+  };
 }
 
 function nonEmptyLines(content) {
@@ -667,6 +817,12 @@ function pickUnknownAttrs(attrs, known) {
   }
 
   return unknownAttrs;
+}
+
+function readLooseAttr(attrText, key) {
+  const match = attrText.match(new RegExp(`(?:^|\\s)${key}=(?:"([^"]*)"|([^\\n]*?))(?=\\s+[a-zA-Z_][a-zA-Z0-9_-]*=|$)`));
+  const value = match?.[1] ?? match?.[2];
+  return value === undefined ? null : value.trim();
 }
 
 function withOptionalFields(node, fields) {

@@ -135,6 +135,33 @@ test("unknown blocks degrade to code-block nodes", () => {
   assert.deepEqual(ast.children[0].warnings, ["unknown-block: unknown"]);
 });
 
+test("parses card blocks and keeps them nested inside grids", () => {
+  const ast = parse(`:::grid cols=2
+:::card title=OSI 七层模型
+1. 物理层 (比特流)
+2. 数据链路层 (帧)
+:::
+:::card title=常用协议映射
+- **应用层**: HTTP, FTP, DNS, DHCP
+- **网络层**: IP, ICMP, ARP, RARP
+:::
+:::`);
+  const grid = ast.children[0];
+
+  assert.equal(grid.type, "grid");
+  assert.equal(grid.columns, 2);
+  assert.equal(grid.cells.length, 2);
+  assert.equal(grid.cells[0][0].type, "card");
+  assert.equal(grid.cells[0][0].title, "OSI 七层模型");
+  assert.equal(grid.cells[0][0].children[0].type, "list");
+  assert.equal(grid.cells[1][0].type, "card");
+  assert.equal(grid.cells[1][0].title, "常用协议映射");
+  assert.equal(
+    grid.cells[1][0].children[0].children[0].children[0].children.some((node) => node.type === "strong"),
+    true
+  );
+});
+
 test("keeps unknown attrs and carries unclosed block warnings", () => {
   const ast = parse(":::chart bar title=\"Revenue\" palette=warm\nQ1 10");
   const chart = ast.children[0];
@@ -220,6 +247,37 @@ test("timeline tolerates indented @ headers and combined-attribute brackets", ()
       ["阶段三", "收尾", "pending"]
     ]
   );
+});
+
+test("timeline accepts bullet shorthand with bold labels", () => {
+  const source = `:::timeline
+- **寄存器**: 速度最快，容量极小 (CPU 内部)
+- **高速缓存 (Cache)**: 缓解 CPU 与内存速度矛盾
+- **内存 (主存)**: 运行程序的主要场所
+- **外存 (磁盘/固态)**: 长期保存数据
+:::`;
+  const timeline = parse(source).children[0];
+
+  assert.equal(timeline.type, "timeline");
+  assert.equal(timeline.items.length, 4);
+  assert.deepEqual(timeline.items.map((item) => item.time), [
+    "寄存器",
+    "高速缓存 (Cache)",
+    "内存 (主存)",
+    "外存 (磁盘/固态)"
+  ]);
+  assert.equal(timeline.items[1].children[0].children[0].value, "缓解 CPU 与内存速度矛盾");
+  assert.deepEqual(timeline.warnings ?? [], []);
+});
+
+test("callout accepts unquoted titles that contain spaces", () => {
+  const callout = parse(`:::callout emphasis=secondary title=Cache 考点总结
+- **映射方式**: 直接映射
+:::`).children[0];
+
+  assert.equal(callout.type, "callout");
+  assert.equal(callout.title, "Cache 考点总结");
+  assert.equal(callout.kind, "info");
 });
 
 test("timeline reports a warning when there are no @ items", () => {

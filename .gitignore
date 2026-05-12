@@ -136,3 +136,5 @@ dist
 
 # Examples generated artifacts (optional, keep commented if they should be tracked)
 # examples/*.html
+
+dist/

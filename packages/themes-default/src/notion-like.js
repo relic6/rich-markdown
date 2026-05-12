@@ -137,6 +137,7 @@ body[data-rmd-theme] {
 
 /* Card-like blocks — flat, soft border, very subtle shadow on hover */
 .rmd-grid-cell,
+.rmd-card,
 .rmd-callout,
 .rmd-export,
 .rmd-slider,
@@ -151,6 +152,17 @@ body[data-rmd-theme] {
 
 .rmd-grid-cell {
   background: var(--rmd-color-surface-strong);
+}
+
+.rmd-card {
+  background: var(--rmd-color-surface);
+  border-color: var(--rmd-color-line);
+  border-radius: var(--rmd-radius-md);
+  box-shadow: none;
+}
+
+.rmd-card::before {
+  display: none;
 }
 
 /* Notion-style callout: gray bg, color icon stripe via left border */
@@ -172,6 +184,7 @@ body[data-rmd-theme] {
 .rmd-callout-info    { color: var(--rmd-color-info);    border-left-color: var(--rmd-color-info); }
 
 .rmd-callout-title,
+.rmd-card-title,
 .rmd-block-title {
   color: var(--rmd-color-fg);
   font-family: var(--rmd-font-ui);
@@ -180,6 +193,7 @@ body[data-rmd-theme] {
   letter-spacing: -0.005em;
 }
 
+.rmd-card-body,
 .rmd-callout-body { color: var(--rmd-color-fg); }
 
 /* Chart — flat fills, soft rounded bars feeling */

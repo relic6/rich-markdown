@@ -84,6 +84,9 @@ function validateBlockNode(node, path, errors, context) {
     case "grid":
       validateGrid(node, path, errors, context);
       break;
+    case "card":
+      validateCard(node, path, errors, context);
+      break;
     case "callout":
       validateCallout(node, path, errors, context);
       break;
@@ -279,6 +282,13 @@ function validateCallout(node, path, errors, context) {
   if (!["info", "tip", "warning", "danger", "success"].includes(node.kind)) {
     add(errors, `${path}/kind`, "callout kind is invalid");
   }
+  if (node.title !== null && typeof node.title !== "string") {
+    add(errors, `${path}/title`, "title must be string or null");
+  }
+  validateBlockChildren(node, path, errors, context);
+}
+
+function validateCard(node, path, errors, context) {
   if (node.title !== null && typeof node.title !== "string") {
     add(errors, `${path}/title`, "title must be string or null");
   }

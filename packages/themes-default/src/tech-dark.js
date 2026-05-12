@@ -111,6 +111,7 @@ body[data-rmd-theme]::before {
 
 /* Card-like blocks: replace the cream surfaces with dark surfaces */
 .rmd-grid-cell,
+.rmd-card,
 .rmd-callout,
 .rmd-export,
 .rmd-slider,
@@ -122,11 +123,26 @@ body[data-rmd-theme]::before {
   box-shadow: var(--rmd-shadow-sm);
 }
 
+.rmd-card {
+  border-color: rgb(92 242 214 / 0.22);
+  background:
+    linear-gradient(180deg, rgb(28 35 54 / 0.92), rgb(19 24 38 / 0.96));
+  box-shadow:
+    0 0 0 1px rgb(92 242 214 / 0.04) inset,
+    var(--rmd-shadow-sm);
+}
+
+.rmd-card::before {
+  background: linear-gradient(90deg, var(--rmd-color-primary), var(--rmd-color-accent));
+  box-shadow: 0 0 16px rgb(92 242 214 / 0.35);
+}
+
 .rmd-callout {
   border-left-width: 3px;
 }
 
 .rmd-callout-title,
+.rmd-card-title,
 .rmd-block-title {
   color: #f0f6ff;
 }
@@ -137,6 +153,7 @@ body[data-rmd-theme]::before {
 .rmd-callout-danger  { color: var(--rmd-color-danger);  border-color: rgb(248 113 113 / 0.35); }
 .rmd-callout-info    { color: var(--rmd-color-info);    border-color: rgb(96 165 250 / 0.35); }
 
+.rmd-card-body,
 .rmd-callout-body { color: var(--rmd-color-fg); }
 
 /* Chart — flat fills, neon outlines, dark surface */

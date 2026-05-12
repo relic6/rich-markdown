@@ -169,6 +169,7 @@ body[data-rmd-theme] {
 .rmd-grid[data-columns="6"] { --rmd-grid-columns: 6; }
 
 .rmd-grid-cell,
+.rmd-card,
 .rmd-callout,
 .rmd-export,
 .rmd-slider,
@@ -196,11 +197,28 @@ body[data-rmd-theme] {
 }
 
 .rmd-callout,
+.rmd-card,
 .rmd-export,
 .rmd-diff,
 .rmd-flow,
 .rmd-tabs {
   padding: 20px;
+}
+
+.rmd-card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgb(23 107 114 / 0.18);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.94), rgb(246 249 244 / 0.9));
+}
+
+.rmd-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--rmd-color-primary), var(--rmd-color-accent));
+  content: "";
 }
 
 .rmd-callout {
@@ -239,6 +257,7 @@ body[data-rmd-theme] {
 }
 
 .rmd-callout-title,
+.rmd-card-title,
 .rmd-block-title {
   margin: 0 0 12px;
   color: var(--rmd-color-fg);
@@ -247,10 +266,17 @@ body[data-rmd-theme] {
   font-weight: 720;
 }
 
+.rmd-card-body,
 .rmd-callout-body {
   color: var(--rmd-color-fg);
 }
 
+.rmd-card-body > :first-child,
+.rmd-callout-body > :first-child {
+  margin-top: 0;
+}
+
+.rmd-card-body > :last-child,
 .rmd-callout-body > :last-child {
   margin-bottom: 0;
 }

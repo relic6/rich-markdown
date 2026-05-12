@@ -88,6 +88,43 @@ Second
   assert.match(html, /aria-label="Go to slide 2"/);
 });
 
+test("renders bullet shorthand timelines and loose callout titles", () => {
+  const html = renderFragmentToString(`:::timeline
+- **寄存器**: 速度最快，容量极小 (CPU 内部)
+- **高速缓存 (Cache)**: 缓解 CPU 与内存速度矛盾
+:::
+
+:::callout emphasis=secondary title=Cache 考点总结
+- **映射方式**: 直接映射
+:::`); 
+
+  assert.match(html, /data-rmd-block="timeline"/);
+  assert.match(html, /<div class="rmd-timeline-time">寄存器<\/div>/);
+  assert.match(html, /缓解 CPU 与内存速度矛盾/);
+  assert.match(html, /class="rmd-callout-title">Cache 考点总结<\/h3>/);
+  assert.doesNotMatch(html, /timeline-empty-items/);
+});
+
+test("renders card blocks as semantic card sections", () => {
+  const html = renderFragmentToString(`:::grid cols=2
+:::card title=常用协议映射
+- **应用层**: HTTP, FTP, DNS, DHCP
+- **网络层**: IP, ICMP, ARP, RARP
+:::
+:::card title=OSI 七层模型
+1. 物理层
+2. 数据链路层
+:::
+:::`);
+
+  assert.match(html, /data-rmd-block="grid"/);
+  assert.match(html, /data-columns="2"/);
+  assert.match(html, /data-rmd-block="card"/);
+  assert.match(html, /class="rmd-card-title">常用协议映射<\/h3>/);
+  assert.match(html, /<strong>应用层<\/strong>/);
+  assert.doesNotMatch(html, /:::card/);
+});
+
 test("escapes user-controlled content in rendered HTML", () => {
   const ast = parse(`# <script>alert(1)</script>
 

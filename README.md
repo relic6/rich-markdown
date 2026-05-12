@@ -2,6 +2,19 @@
 
 Rich Markdown (`rmd`) is a toolchain and core engine for parsing, validating, previewing, and building `.rmd` files. It provides a standard way to process rich text content, featuring a local preview server and multiple built-in themes.
 
+## 📖 Documentation
+
+For a deep dive into the project's design philosophy and roadmap, please refer to the documents in the [docs](./docs) folder:
+- **[VISION.md](./docs/VISION.md)**: The core vision and design philosophy of Rich Markdown.
+- **[GETTING-STARTED.md](./docs/GETTING-STARTED.md)**: A comprehensive guide for new users.
+
+## 🚀 Examples & Showcase
+
+We provide a comprehensive showcase of Rich Markdown's capabilities. You can explore the source files and the rendered output:
+- **Source**: [examples/v0.2-showcase.rmd](./examples/v0.2-showcase.rmd) — Explore the syntax of various components (Timelines, Grids, Charts, etc.).
+- **Live Preview**: [examples/v0.2-showcase.html](./examples/v0.2-showcase.html) — View the rendered output to see the visual effects of different themes and layouts.
+
+
 ## Installation
 
 We recommend installing the CLI tool globally via npm:

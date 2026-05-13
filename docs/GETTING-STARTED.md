@@ -451,7 +451,7 @@ rmd init --ai claude
 # 等价于把 skills/dist/claude/ 拷到 .claude/skills/rich-markdown/
 ```
 
-然后在 Claude Code 里问它："帮我写一份产品方案对比，用 Rich Markdown 格式"——Claude 会自动调用 skill：
+然后在 Claude Code 里输入："请写一份产品方案对比，用 Rich Markdown 格式"——Claude 会自动调用 skill：
 
 1. 加载 `references/blocks.md` 学到 14 块的语法
 2. 写一份 `.rmd` 到 `examples/<short-name>.rmd`
@@ -501,7 +501,7 @@ rmd init --ai gemini
 </head><body>
 <div id="rmd-root"></div>
 <script type="application/rmd">
-# 我的报告
+# 服务限流报告
 :::chart bar
 A 10
 B 20

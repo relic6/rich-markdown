@@ -154,27 +154,129 @@ export function buildLivePreviewRanges(source, cursor = -1) {
   return ranges;
 }
 
+/**
+ * Annotate each top-level rendered block with its source offset so split-view
+ * clicks can jump back to the right line.
+ *
+ * The previous implementation queried `p`, `ul,ol`, `blockquote`, etc. across
+ * the whole tree and zipped the results to the source-map entries by array
+ * index. That breaks the moment the rendered HTML contains nested instances
+ * of those tags — a `<p>` inside a callout, a `<p>` inside a `<blockquote>`,
+ * a nested `<ul>` inside an `<li>`, etc. — because the source-map only
+ * captures top-level blocks. The result was an off-by-N misalignment between
+ * entries and elements, so clicking a paragraph could focus the offset of the
+ * paragraph that came after it.
+ *
+ * We now walk **direct children of `.rmd-document` only**, in document order,
+ * and pair each child with the next source-map entry whose kind matches the
+ * child's tag. Both lists are produced in document order by their generators,
+ * so a simple kind-aware merge is enough.
+ */
 export function annotateRenderedSource(root, sourceMap) {
-  annotateBySelector(root, "[data-rmd-block]", sourceMap.filter((entry) => entry.kind === "block"));
-  annotateBySelector(root, "h1,h2,h3,h4,h5,h6", sourceMap.filter((entry) => entry.kind === "heading"));
-  annotateBySelector(root, "p", sourceMap.filter((entry) => entry.kind === "paragraph"));
-  annotateBySelector(root, "pre.rmd-code", sourceMap.filter((entry) => entry.kind === "code"));
-  annotateBySelector(root, "blockquote", sourceMap.filter((entry) => entry.kind === "blockquote"));
-  annotateBySelector(root, "ul,ol", sourceMap.filter((entry) => entry.kind === "list"));
-  annotateBySelector(root, "hr", sourceMap.filter((entry) => entry.kind === "thematic-break"));
-}
+  const container = resolveDocumentContainer(root);
+  if (!container) {
+    return;
+  }
 
-function annotateBySelector(root, selector, entries) {
-  const elements = Array.from(root.querySelectorAll(selector));
-  elements.forEach((element, index) => {
-    const entry = entries[index];
-    if (!entry) {
-      return;
+  const children = collectDirectChildren(container);
+  const entries = Array.isArray(sourceMap) ? sourceMap : [];
+
+  let entryIndex = 0;
+  for (const element of children) {
+    if (entryIndex >= entries.length) {
+      break;
     }
 
-    element.setAttribute("data-rmd-source-from", String(entry.from));
-    element.setAttribute("data-rmd-source-to", String(entry.to));
-  });
+    const kind = elementKind(element);
+    if (!kind) {
+      continue;
+    }
+
+    // Advance through entries until we find one matching this element's kind.
+    // This tolerates the rare case where the renderer emits a block the
+    // source-map didn't catch (or vice versa) without producing wrong offsets
+    // for unrelated blocks.
+    while (entryIndex < entries.length && entries[entryIndex].kind !== kind) {
+      entryIndex += 1;
+    }
+    if (entryIndex >= entries.length) {
+      break;
+    }
+
+    const entry = entries[entryIndex];
+    if (typeof element.setAttribute === "function") {
+      element.setAttribute("data-rmd-source-from", String(entry.from));
+      element.setAttribute("data-rmd-source-to", String(entry.to));
+    }
+    entryIndex += 1;
+  }
+}
+
+function resolveDocumentContainer(root) {
+  if (!root) {
+    return null;
+  }
+  if (typeof root.querySelector === "function") {
+    const doc = root.querySelector(".rmd-document");
+    if (doc) {
+      return doc;
+    }
+  }
+  // Test doubles may pass a node that already represents the document body.
+  if (root.children && typeof root.children.length === "number") {
+    return root;
+  }
+  return null;
+}
+
+function collectDirectChildren(container) {
+  const list = container.children;
+  if (!list) {
+    return [];
+  }
+  if (Array.isArray(list)) {
+    return list;
+  }
+  if (typeof list.length === "number") {
+    return Array.from(list);
+  }
+  return [];
+}
+
+function elementKind(element) {
+  if (!element || !element.tagName) {
+    return null;
+  }
+  if (elementHasBlockAttribute(element)) {
+    return "block";
+  }
+  const tag = String(element.tagName).toLowerCase();
+  if (tag === "p") return "paragraph";
+  if (tag === "blockquote") return "blockquote";
+  if (tag === "ul" || tag === "ol") return "list";
+  if (tag === "hr") return "thematic-break";
+  if (/^h[1-6]$/.test(tag)) return "heading";
+  if (tag === "pre" && elementHasClass(element, "rmd-code")) return "code";
+  return null;
+}
+
+function elementHasBlockAttribute(element) {
+  if (typeof element.hasAttribute === "function") {
+    return element.hasAttribute("data-rmd-block");
+  }
+  // Test doubles expose attributes as a plain object.
+  return Boolean(element.attributes && Object.prototype.hasOwnProperty.call(element.attributes, "data-rmd-block"));
+}
+
+function elementHasClass(element, name) {
+  if (element.classList && typeof element.classList.contains === "function") {
+    return element.classList.contains(name);
+  }
+  const className = element.className ?? (element.attributes && element.attributes.class);
+  if (typeof className === "string") {
+    return className.split(/\s+/).includes(name);
+  }
+  return false;
 }
 
 function entriesToRange(source, entries, start, end) {

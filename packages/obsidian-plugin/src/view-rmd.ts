@@ -318,7 +318,38 @@ export class RmdView extends TextFileView {
       return;
     }
 
-    this.renderHost.addEventListener("click", (event) => {
+    const host = this.renderHost;
+
+    // Track the mousedown position so we can tell apart a real click from a
+    // drag-to-select gesture. Browsers also fire `click` at the end of a
+    // drag-select, which previously stole focus and wiped the selection — the
+    // user couldn't copy text out of the preview pane.
+    let downX = 0;
+    let downY = 0;
+    let downInside = false;
+    host.addEventListener("mousedown", (event) => {
+      if (event.button !== 0) {
+        downInside = false;
+        return;
+      }
+      downX = event.clientX;
+      downY = event.clientY;
+      downInside = true;
+    });
+
+    host.addEventListener("click", (event) => {
+      if (!downInside) {
+        return;
+      }
+      downInside = false;
+
+      // If the user actually moved the mouse, treat this as a drag (likely a
+      // text selection) and don't move the cursor.
+      const moved = Math.hypot(event.clientX - downX, event.clientY - downY) > 4;
+      if (moved || hasActiveSelection(host)) {
+        return;
+      }
+
       const target = findSourceMappedElement(event);
       if (!target) {
         return;
@@ -425,6 +456,34 @@ function findSourceMappedElement(event: MouseEvent): HTMLElement | null {
     }
   }
   return null;
+}
+
+/**
+ * Tells whether the user currently has a non-empty selection that we should
+ * preserve. In Obsidian (Electron / Chromium) the preview content lives inside
+ * an open shadow root; selections inside that shadow root are tracked through
+ * `ShadowRoot.getSelection()` rather than the top-level Document selection.
+ * We check both so the heuristic works whichever path the selection lives on.
+ */
+function hasActiveSelection(host: HTMLElement): boolean {
+  const doc = host.ownerDocument ?? globalThis.document;
+  const selections: Array<Selection | null | undefined> = [];
+
+  if (doc && typeof doc.getSelection === "function") {
+    selections.push(doc.getSelection());
+  }
+
+  const shadowRoot = host.shadowRoot as (ShadowRoot & { getSelection?: () => Selection | null }) | null;
+  if (shadowRoot && typeof shadowRoot.getSelection === "function") {
+    selections.push(shadowRoot.getSelection());
+  }
+
+  for (const sel of selections) {
+    if (sel && !sel.isCollapsed && sel.toString().length > 0) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**

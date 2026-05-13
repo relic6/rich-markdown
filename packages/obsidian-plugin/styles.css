@@ -81,10 +81,16 @@
 }
 
 .rmd-pane-preview rmd-render {
-  cursor: default;
+  cursor: text;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
-.rmd-pane-preview rmd-render [data-rmd-source-from] {
+/* Only the split view has a click-to-jump handler bound to the preview pane.
+   In preview-only mode there's no source editor to sync to, so showing a
+   pointer cursor was misleading and the elements should keep the default text
+   cursor (so users naturally try to select/copy). */
+.rmd-mode-split .rmd-pane-preview rmd-render [data-rmd-source-from] {
   cursor: pointer;
 }
 
